@@ -7,7 +7,7 @@ from PyQt5.QtCore import pyqtSlot
 
 
 class MainGui(QMainWindow):
-
+    """This is the main window."""
     def __init__(self):
         app = QApplication(sys.argv)
         app.setStyle('Fusion')
