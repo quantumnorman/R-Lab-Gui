@@ -5,6 +5,9 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QAc
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
 from shamrockgui import *
+from dataacgui import *
+from ingaasgui import *
+
 
 
 class MainGui(QMainWindow):
@@ -83,51 +86,5 @@ class Spectbtns(QWidget):
         self.spectrometergui.show()
 
 
-# class SpectrometerGui(QMainWindow):
-#     def __init__(self):
-#         super(SpectrometerGui, self).__init__()
-#         self.title = 'Shamrock Spectrometer Control'
-#         self.left = 50
-#         self.top = 50
-#         self.width = 500
-#         self.height = 500
-#         self.initspecUI()
-#
-#     def initspecUI(self):
-#         self.setWindowTitle(self.title)
-#         self.setGeometry(self.left, self.top, self.width, self.height)
-
-
-
-class InGaAsGui(QMainWindow):
-    def __init__(self):
-        super(InGaAsGui, self).__init__()
-        self.title = 'InGaAs Camera Control'
-        self.left = 50
-        self.top = 50
-        self.width = 500
-        self.height = 500
-        self.initingaasUI()
-
-    def initingaasUI(self):
-        self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
-
-class DataacGui(QMainWindow):
-    def __init__(self):
-        super(DataacGui, self).__init__()
-        self.title = 'Spectrometer Data Acquisition'
-        self.left = 50
-        self.top = 50
-        self.width = 500
-        self.height = 500
-        self.initdataacUI()
-
-    def initdataacUI(self):
-        self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
-
 
 MainGui()
-
-# Spectrometergui()
