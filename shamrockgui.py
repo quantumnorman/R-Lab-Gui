@@ -38,11 +38,14 @@ class SpecControlbtns(QWidget):
         hbox = QHBoxLayout()
         hbox.addStretch(1)
 
-        # flipbtns = self.flipspecbtns()
-        # zeroutbtn =
+        speclayout = QVBoxLayout()
+
         specbtns = self.initializespecbtns()
-        self.setLayout(specbtns)
-        # hbox.addWidget(flipbtns)
+        flipbtns = self.flipspecbtns()
+
+        speclayout.addWidget(flipbtns)
+        speclayout.addWidget(specbtns)
+        self.setLayout(speclayout)
 
 
     def initializespecbtns(self):
@@ -61,16 +64,35 @@ class SpecControlbtns(QWidget):
         vbox.addStretch(1)
         vbox.addLayout(hbox)
 
-        return vbox
+        groupbox = QGroupBox()
+        groupbox.setLayout(vbox)
+        return groupbox
 
-    # def flipspecbtns(self):
-    #     zeroinbtn = QPushButton('Zero Input Flipper Mirror', self)
-    #     zeroinbtn.clicked.connect(self.on_click_zeroinflip)
-    #
-    #     zerooutbtn = QPushButton('Zero Output Flipper Mirror', self)
-    #     zerooutbtn.clicked.connect(self.on_click_zerooutflip)
+    def flipspecbtns(self):
+        zeroinbtn = QPushButton('Zero Input Flipper Mirror', self)
+        zeroinbtn.clicked.connect(self.on_click_zeroinflip)
 
-        return zeroinbtn, zerooutbtn
+        zerooutbtn = QPushButton('Zero Output Flipper Mirror', self)
+        zerooutbtn.clicked.connect(self.on_click_zerooutflip)
+
+        maxinbtn = QPushButton('Max Input Flipper Mirror', self)
+        maxinbtn.clicked.connect(self.on_click_maxinflip)
+
+        maxoutbtn = QPushButton('Max Output Flipper Mirror', self)
+        maxoutbtn.clicked.connect(self.on_click_maxoutflip)
+
+        gbox = QGridLayout()
+        gbox.addWidget(zerooutbtn, 0, 0)
+        gbox.addWidget(zeroinbtn, 0, 1)
+        gbox.addWidget(maxoutbtn, 1, 0)
+        gbox.addWidget(maxinbtn, 1, 1)
+
+
+        groupbox = QGroupBox()
+        groupbox.setLayout(gbox)
+        groupbox.setTitle('Flipper Mirror controls')
+
+        return groupbox
 
 
     @pyqtSlot()
@@ -89,3 +111,17 @@ class SpecControlbtns(QWidget):
     def on_click_zerooutflip(self):
         # zerooutflip = sham.ShamrockFlipperMirrorReset(0, 2)
         print('Output Flipper Reset')
+
+    def on_click_maxinflip(self):
+        print('Input Flipper Max')
+
+    def on_click_maxoutflip(self):
+        print('Output Flipper Max')
+
+
+#TODO: add updating QLabels with inner/outer flipper positions. See https://www.riverbankcomputing.com/pipermail/pyqt/2013-July/033053.html
+#TODO: add grating buttons and label with current grating position
+#TODO: add status bar with moving/finished for flipper and grating
+#TODO: add 'other' option for flipper?
+#TODO: add offset option for grating?
+

@@ -18,3 +18,10 @@ class DataacGui(QMainWindow):
     def initdataacUI(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
+
+
+#TODO: set matplotlib plotting window
+#TODO: create buttons for preset acquisition .1s, 1s, 10s 60s
+#TODO: create saving for both txt and pngs
+#TODO: LATER: add continuous view mode (video mode I think?)
+#TODO: LATER: add kinetic series button
