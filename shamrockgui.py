@@ -31,23 +31,46 @@ class SpectrometerGui(QMainWindow):
 
 class SpecControlbtns(QWidget):
     def __init__(self):
-        super().__init__()
-        self.left = 12.5
-        self.top = 12.5
-        self.width = 275
-        self.height = 475
-        self.initializespecbtns()
+        super(SpecControlbtns, self).__init__()
+        self.initspecUI()
 
+    def initspecUI(self):
+        hbox = QHBoxLayout()
+        hbox.addStretch(1)
+
+        # flipbtns = self.flipspecbtns()
+        # zeroutbtn =
+        specbtns = self.initializespecbtns()
+        self.setLayout(specbtns)
+        # hbox.addWidget(flipbtns)
 
 
     def initializespecbtns(self):
-        self.setGeometry(self.left, self.top, self.width, self.height)
-
         closebtn = QPushButton('Shutdown Shamrock', self)
         closebtn.clicked.connect(self.on_click_close)
 
         reinitbtn = QPushButton('Reinitialize Shamrock', self)
         reinitbtn.clicked.connect(self.on_click_reinit)
+
+        hbox = QHBoxLayout()
+        hbox.addStretch(1)
+        hbox.addWidget(reinitbtn)
+        hbox.addWidget(closebtn)
+
+        vbox = QVBoxLayout()
+        vbox.addStretch(1)
+        vbox.addLayout(hbox)
+
+        return vbox
+
+    # def flipspecbtns(self):
+    #     zeroinbtn = QPushButton('Zero Input Flipper Mirror', self)
+    #     zeroinbtn.clicked.connect(self.on_click_zeroinflip)
+    #
+    #     zerooutbtn = QPushButton('Zero Output Flipper Mirror', self)
+    #     zerooutbtn.clicked.connect(self.on_click_zerooutflip)
+
+        return zeroinbtn, zerooutbtn
 
 
     @pyqtSlot()
@@ -59,39 +82,6 @@ class SpecControlbtns(QWidget):
         # sham.ShamrockInitialize(inifile)
         print('Reinitialize Shamrock')
 
-
-class Flipperspecbtns(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.left = 12.5
-        self.top = 12.5
-        self.width = 275
-        self.height = 475
-        self.initializespecbtns()
-        grid = QGridLayout()
-        grid.addWidget(self.initializespecbtns(), 0, 0)
-        self.setLayout(grid)
-
-    def initializeflipbtns(self):
-        self.setGeometry(self.left, self.top, self.width, self.height)
-
-        closebtn = QPushButton('Shutdown Shamrock', self)
-        closebtn.clicked.connect(self.on_click_close)
-
-        reinitbtn = QPushButton('Reinitialize Shamrock', self)
-        reinitbtn.clicked.connect(self.on_click_reinit)
-
-        spectbox = QGroupBox()
-        spectvbox = QVBoxLayout()
-        vbox1 = QVBoxLayout()
-        spectvbox.addWidget(closebtn)
-        spectvbox.addWidget(reinitbtn)
-        spectvbox.addLayout(vbox1)
-        spectbox.setLayout(spectvbox)
-
-        return spectbox
-
-    @pyqtSlot()
     def on_click_zeroinflip(self):
         # zeroinflip = sham.ShamrockFlipperMirrorReset(0, 1)
         print('Input Flipper Reset')
