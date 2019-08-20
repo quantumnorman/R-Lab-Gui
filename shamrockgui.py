@@ -113,9 +113,11 @@ class SpecControlbtns(QWidget):
         print('Output Flipper Reset')
 
     def on_click_maxinflip(self):
+        #TODO: add functionality
         print('Input Flipper Max')
 
     def on_click_maxoutflip(self):
+        #TODO: add functionality
         print('Output Flipper Max')
 
 
