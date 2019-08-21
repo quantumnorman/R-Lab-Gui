@@ -20,7 +20,6 @@ class DataacGui(QMainWindow):
         # self.width = 500
         # self.height = 500
         self.initdataacUI()
-        sys.exit(app.exec_())
 
     def initdataacUI(self):
         self.setWindowTitle(self.title)
@@ -29,7 +28,6 @@ class DataacGui(QMainWindow):
         self.setCentralWidget(control)
 
 
-        self.show()
 
 
 class Datacontrol(QWidget):
@@ -131,5 +129,3 @@ class Datacontrol(QWidget):
 #TODO: create saving for both txt and pngs
 #TODOLATER: add continuous view mode (video mode I think?)
 #TODOLATER: add kinetic series button
-
-DataacGui()
