@@ -71,23 +71,31 @@ class SpecControlbtns(QWidget):
         return groupbox
 
     def flipspecbtns(self):
-        zeroinbtn = QPushButton('Zero Input Flipper Mirror', self)
-        zeroinbtn.clicked.connect(self.on_click_zeroinflip)
+        zeroinbtn = QPushButton('Straight Input Flipper Mirror', self)
+        zeroinbtn.clicked.connect(self.on_click_straightinflip)
 
-        zerooutbtn = QPushButton('Zero Output Flipper Mirror', self)
-        zerooutbtn.clicked.connect(self.on_click_zerooutflip)
+        zerooutbtn = QPushButton('Straight Output Flipper Mirror', self)
+        zerooutbtn.clicked.connect(self.on_click_straightoutflip)
 
-        maxinbtn = QPushButton('Max Input Flipper Mirror', self)
-        maxinbtn.clicked.connect(self.on_click_maxinflip)
+        maxinbtn = QPushButton('Right Input Flipper Mirror', self)
+        maxinbtn.clicked.connect(self.on_click_rightinflip)
 
-        maxoutbtn = QPushButton('Max Output Flipper Mirror', self)
-        maxoutbtn.clicked.connect(self.on_click_maxoutflip)
+        maxoutbtn = QPushButton('Left Output Flipper Mirror', self)
+        maxoutbtn.clicked.connect(self.on_click_leftoutflip)
+
+        resetoutbtn = QPushButton('Zero Output Flipper Mirror', self)
+        resetoutbtn.clicked.connect(self.on_click_resetoutflip)
+
+        resetinbtn = QPushButton('Zero Input Flipper Mirror', self)
+        resetinbtn.clicked.connect(self.on_click_resetoutflip)
 
         gbox = QGridLayout()
         gbox.addWidget(zerooutbtn, 0, 0)
         gbox.addWidget(zeroinbtn, 0, 1)
         gbox.addWidget(maxoutbtn, 1, 0)
         gbox.addWidget(maxinbtn, 1, 1)
+        gbox.addWidget(resetoutbtn, 2,0)
+        gbox.addWidget(resetinbtn, 2,1)
 
 
         groupbox = QGroupBox()
@@ -104,7 +112,7 @@ class SpecControlbtns(QWidget):
         grating2.clicked.connect(self.on_click_switch2)
 
         grating3 = QPushButton('1300nm Grating', self)
-        grating3.clicked.connect(self.on_click_maxinflip)
+        # grating3.clicked.connect(self.on_click_maxinflip)
 
         gbox = QGridLayout()
         gbox.addWidget(grating1, 0, 0)
@@ -131,34 +139,33 @@ class SpecControlbtns(QWidget):
         sham.ShamrockInitialize(inifile)
         print('Reinitialize Shamrock')
 
-    def on_click_zeroinflip(self):
+    def on_click_resetoutflip(self):
         zeroinflip = sham.ShamrockFlipperMirrorReset(0, 1)
         print('Input Flipper Reset')
 
-    def on_click_zerooutflip(self):
+    def on_click_resetinflip(self):
         zerooutflip = sham.ShamrockFlipperMirrorReset(0, 2)
         print('Output Flipper Reset')
 
-    def on_click_maxinflip(self):
-        maxvalue = sham.ShamrockGetFlipperMirrorMaxPosition(0,1)
+    def on_click_straightinflip(self):
+        maxvalue = sham.ShamrockSetFlipperMirrorPosition(0, 1, 0)
         print(maxvalue[0])
         print(maxvalue[1])
-        print('Input Flipper Max')
 
-    def on_click_maxoutflip(self):
-        #TODO: add functionality
-        print('Output Flipper Max')
+    def on_click_straightoutflip(self):
+        maxvalue = sham.ShamrockSetFlipperMirrorPosition(0, 2, 0)
+
+    def on_click_rightinflip(self):
+        maxvalue = sham.ShamrockSetFlipperMirrorPosition(0, 1, -400)
+
+
+    def on_click_leftoutflip(self):
+        maxvalue = sham.ShamrockSetFlipperMirrorPosition(0, 2, -400)
 
 
     def on_click_switch1(self):
         setgrate = sham.ShamrockSetGrating(0, 1)
-        print('Grating moved')
         grateinfo = sham.ShamrockGetGratingInfo(0, 1)
-        print('Current Grating Info')
-        print('Lines=', grateinfo[0])
-        print('Blaze=', grateinfo[1])
-        print('Home=', grateinfo[2])
-        print('Offset=', grateinfo[3])
 
     def on_click_switch2(self):
         setgrate = sham.ShamrockSetGrating(0, 2)
