@@ -48,7 +48,7 @@ class Spectbtns(QWidget):
         self.setLayout(grid)
         self.spectrometergui = SpectrometerGui()
         self.ingaasgui = InGaAsGui()
-        # self.dataacgui = DataacGui()
+        self.dataacgui = DataacGui()
 
 
     def initspecbtns(self):
