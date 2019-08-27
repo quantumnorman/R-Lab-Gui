@@ -1,6 +1,6 @@
 import sys
 
-from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QAction, QTabWidget, QVBoxLayout, QGroupBox, QHBoxLayout, QGridLayout
+from PyQt5.QtWidgets import QToolButton, QMainWindow, QApplication, QPushButton, QWidget, QAction, QTabWidget, QVBoxLayout, QGroupBox, QHBoxLayout, QGridLayout
 
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
@@ -20,7 +20,7 @@ class MainGui(QMainWindow):
         self.left = 50
         self.top = 50
         self.width = 300
-        self.height = 500
+        self.height = 300
         self.setCentralWidget(Spectbtns())
         self.initUI()
         sys.exit(app.exec_())
@@ -56,12 +56,15 @@ class Spectbtns(QWidget):
         self.setGeometry(self.left, self.top, self.width, self.height)
 
         shamrockbtn = QPushButton('Shamrock', self)
+        shamrockbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         shamrockbtn.clicked.connect(self.on_click_shamrock)
 
         ingaasbtn = QPushButton('InGaAs Camera', self)
+        ingaasbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         ingaasbtn.clicked.connect(self.on_click_ingaas)
 
         dataacbtn = QPushButton('Data Acquisition', self)
+        dataacbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         dataacbtn.clicked.connect(self.on_click_dataac)
 
         spectbox = QGroupBox('Spectrometer Controls')

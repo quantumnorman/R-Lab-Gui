@@ -71,12 +71,10 @@ class SpecControlbtns(QWidget):
         reinitbtn.clicked.connect(self.on_click_reinit)
 
         hbox = QHBoxLayout()
-        hbox.addStretch(1)
         hbox.addWidget(reinitbtn)
         hbox.addWidget(closebtn)
 
         vbox = QVBoxLayout()
-        vbox.addStretch(1)
         vbox.addLayout(hbox)
 
         groupbox = QGroupBox()
