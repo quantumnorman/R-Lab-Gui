@@ -74,6 +74,7 @@ class Datacontrol(QWidget):
         dataaclayout = QGridLayout()
         actimes = self.presetactimes()
         mplplt = WidgetPlot()
+        self.plot = mplplt
 
         dataaclayout.addWidget(actimes, 0, 0)
         dataaclayout.addWidget(mplplt, 0, 1, 5, 5)
@@ -127,7 +128,7 @@ class Datacontrol(QWidget):
     def on_click_onesecbtn(self):
         print('1 Second Acquisition')
         # fullFramebuffer = self.acquisition(1)
-        # return fullFrameBuffer
+        # return self.plot(fullFrameBuffer)
         # TODO: check functionality
 
     def on_click_tensecbtn(self):
@@ -153,10 +154,12 @@ class PlotCanvas(FigureCanvas):
 
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
-        self.plot()
+        data = [np.random.poisson() for i in range(256)]
+        self.plot(data)
 
-    def plot(self):
-        data = [np.tan(i) for i in range(250)]
+    def plot(self, data):
+        (ret, xpixels, ypixels) = cam.GetDetector()
+
         ax = self.figure.add_subplot(111)
         ax.plot(data, 'r.')
         ax.set_title('PyQt Matplotlib Example')
@@ -170,6 +173,9 @@ class WidgetPlot(QWidget):
         self.toolbar = NavigationToolbar(self.canvas, self)
         self.layout().addWidget(self.toolbar)
         self.layout().addWidget(self.canvas)
+
+    def plot(self, j):
+        self.canvas.plot(j)
 
 #TODO: create saving mode for txt
 #TODOLATER: add continuous view mode (video mode I think?)
