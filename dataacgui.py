@@ -122,6 +122,8 @@ class Datacontrol(QWidget):
     def on_click_pointonesbtn(self):
         # TODO: check functionality
         print('0.1 Second Acquisition')
+        data = [np.tan(i) for i in range(250)]
+        self.plot.plot(data)
         # fullFramebuffer = self.acquisition(0.1)
         # return fullFrameBuffer
 
@@ -129,6 +131,8 @@ class Datacontrol(QWidget):
         print('1 Second Acquisition')
         # fullFramebuffer = self.acquisition(1)
         # return self.plot(fullFrameBuffer)
+        data = [np.sin(i) for i in range(250)]
+        self.plot.plot(data)
         # TODO: check functionality
 
     def on_click_tensecbtn(self):
@@ -148,21 +152,15 @@ class PlotCanvas(FigureCanvas):
     def __init__(self, parent=None):
         fig = Figure()
         self.axes = fig.add_subplot(111)
-
         FigureCanvas.__init__(self, fig)
         self.setParent(parent)
 
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
-        data = [np.random.poisson() for i in range(256)]
-        self.plot(data)
 
     def plot(self, data):
-        (ret, xpixels, ypixels) = cam.GetDetector()
-
-        ax = self.figure.add_subplot(111)
-        ax.plot(data, 'r.')
-        ax.set_title('PyQt Matplotlib Example')
+        self.axes.plot(data, 'r.')
+        self.axes.set_title('PyQt Matplotlib Example')
         self.draw()
 
 class WidgetPlot(QWidget):
@@ -174,8 +172,9 @@ class WidgetPlot(QWidget):
         self.layout().addWidget(self.toolbar)
         self.layout().addWidget(self.canvas)
 
-    def plot(self, j):
-        self.canvas.plot(j)
+    def plot(self, data):
+        self.canvas.axes.clear()
+        self.canvas.plot(data)
 
 #TODO: create saving mode for txt
 #TODOLATER: add continuous view mode (video mode I think?)
