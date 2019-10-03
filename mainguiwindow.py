@@ -17,7 +17,7 @@ class MainGui(QMainWindow):
         app.setStyle('Fusion')
         super(MainGui, self).__init__()
         self.title = 'R-Lab Instrumentation Controls'
-        self.left = 50
+        self.left = 200
         self.top = 50
         self.width = 300
         self.height = 300
