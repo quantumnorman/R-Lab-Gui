@@ -7,8 +7,14 @@ import matplotlib.pyplot as plt
 import csv
 from atmcd import *
 from PyQt5.QtCore import pyqtSlot
+import datetime
+from pyAndorShamrock import Shamrock
+sham = Shamrock.Shamrock()
+
+now = datetime.datetime.now()
 
 cam = atmcd()
+
 #
 # inifile = 'C:\\Users\\R-Lab\\Desktop\\cam.ini'
 # cam.Initialize(inifile)
@@ -68,35 +74,50 @@ class Datacontrol(QWidget):
 
         dataaclayout.addWidget(actimes, 0, 0)
         dataaclayout.addWidget(mplplt, 0, 1, 5, 5)
-        dataaclayout.addWidget(saveload, 5,0)
+        dataaclayout.addWidget(saveload, 4,0)
         dataaclayout.addWidget(continuous, 2, 0)
         # dataaclayout.addWidget(kinscans, 2,0)
         self.setLayout(dataaclayout)
         self.data = None
+        self.exposuretime = None
 
     def presetactimes(self):
         btnwid = 40
-        btnhgt = 40
+        btnhgt = 100
 
         pointonesbtn = QPushButton('0.1s', self)
+        # pointonesbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        pointonesbtn.setMinimumHeight(btnhgt)
         pointonesbtn.clicked.connect(self.on_click_pointonesbtn)
 
         onesecbtn = QPushButton('1s', self)
+        # onesecbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        onesecbtn.setMinimumHeight(btnhgt)
         onesecbtn.clicked.connect(self.on_click_onesecbtn)
 
 
         tensecbtn = QPushButton('10s', self)
+        # tensecbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        tensecbtn.setMinimumHeight(btnhgt)
         tensecbtn.clicked.connect(self.on_click_tensecbtn)
 
 
         sixtysecbtn = QPushButton('60s', self)
+        # sixtysecbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        sixtysecbtn.setMinimumHeight(btnhgt)
         sixtysecbtn.clicked.connect(self.on_click_sixtysecbtn)
+
+        self.inputbox = QLineEdit(self)
+        self.inputbtn = QPushButton('Acquire (s)', self)
+        self.inputbtn.clicked.connect(self.on_click_inputtime)
 
         btnlay = QGridLayout()
         btnlay.addWidget(pointonesbtn, 0, 0)
         btnlay.addWidget(onesecbtn, 0,1)
         btnlay.addWidget(tensecbtn, 0, 2)
         btnlay.addWidget(sixtysecbtn, 0, 3)
+        btnlay.addWidget(self.inputbox, 1, 0, 1,2)
+        btnlay.addWidget(self.inputbtn, 1, 2)
 
         groupbox = QGroupBox()
         groupbox.setLayout(btnlay)
@@ -104,18 +125,21 @@ class Datacontrol(QWidget):
         return groupbox
 
     def saveloadbtns(self):
-        btnwid = 40
-        btnhgt = 40
+        btnhgt = 100
 
         savebtn = QPushButton('save data to txt', self)
+        # savebtn.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        savebtn.setMinimumHeight(btnhgt)
         savebtn.clicked.connect(self.on_click_singlesavedata)
 
         loadbtn = QPushButton('load data from txt', self)
+        loadbtn.setMinimumHeight(btnhgt)
+        # loadbtn.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         # loadbtn.clicked.connect(self.on_click_loaddata)
 
-        btnlay = QHBoxLayout()
-        btnlay.addWidget(savebtn)
-        btnlay.addWidget(loadbtn)
+        btnlay = QGridLayout()
+        btnlay.addWidget(savebtn, 0, 0)
+        btnlay.addWidget(loadbtn, 0, 1)
 
         groupbox = QGroupBox()
         groupbox.setLayout(btnlay)
@@ -123,10 +147,16 @@ class Datacontrol(QWidget):
         return groupbox
 
     def continousbtns(self):
-        startbtn = QPushButton('Start Continuous Mode', self)
+        btnhgt = 100
+
+        startbtn = QPushButton('Start Scanning', self)
+        startbtn.setMinimumHeight(btnhgt)
+        # startbtn.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         startbtn.clicked.connect(self.on_click_continuous)
 
-        stopbtn = QPushButton('Stop Continuous Mode', self)
+        stopbtn = QPushButton('Stop Scanning', self)
+        stopbtn.setMinimumHeight(btnhgt)
+        # stopbtn.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.)
         stopbtn.clicked.connect(self.on_click_stopcontinuous)
 
         btnlay = QHBoxLayout()
@@ -135,10 +165,11 @@ class Datacontrol(QWidget):
 
         groupbox = QGroupBox()
         groupbox.setLayout(btnlay)
+        groupbox.setTitle('Continuous Scan')
 
         return groupbox
 
-
+#kinetic buttons
     # def kineticdatabtns(self):
     #     btnwid = 40
     #     btnhgt = 40
@@ -192,7 +223,7 @@ class Datacontrol(QWidget):
             print("Shutdown returned", ret)
         else:
             print("Cannot continue, could not initialise camera")
-        return data
+        return data, time
 
     def continuousmode(self):
         (ret) = cam.Initialize("/usr/local/etc/andor")
@@ -226,7 +257,7 @@ class Datacontrol(QWidget):
 
 
 
-
+#kinetic acquisition
     # def kineticacquisition(self, exposuretime, imagenumber, cycletime):
     #
     #     numberOfImages = imagenumber
@@ -278,15 +309,15 @@ class Datacontrol(QWidget):
     #     else:
     #         print("Cannot continue, could not initialise camera")
     #
-    #     return dataarray
+    #     return dataarray #
 
     @pyqtSlot()
     def on_click_pointonesbtn(self):
         # data = [np.tan(i) for i in range(250)]
-        fullFramebuffer = self.singleacquisition(0.1)
-        self.data = fullFramebuffer
+        self.data, self.exposuretime = self.singleacquisition(0.1)
         self.plot.plot(self.data)
-        return self.data
+        return self.data, self.exposuretime
+#failed attempt to use single acquisition(time) for on_click(time)
 
     # def on_click_singleacbtn(self, time):
     #     fullFramebuffer = self.singleacquisition(time)
@@ -295,24 +326,27 @@ class Datacontrol(QWidget):
     #     return self.data
 
     def on_click_onesecbtn(self):
-        fullFramebuffer = self.singleacquisition(1)
-        self.data = fullFramebuffer
+        self.data, self.exposuretime = self.singleacquisition(1)
         self.plot.plot(self.data)
-        return self.data
+        return self.data, self.exposuretime
 
 
     def on_click_tensecbtn(self):
-        fullFramebuffer = self.singleacquisition(10)
-        self.data = fullFramebuffer
+        self.data, self.exposuretime = self.singleacquisition(10)
         self.plot.plot(self.data)
-        return self.data
+        return self.data, self.exposuretime
 
 
     def on_click_sixtysecbtn(self):
-        fullFramebuffer = self.singleacquisition(60)
-        self.data = fullFramebuffer
+        self.data, self.exposuretime = self.singleacquisition(60)
         self.plot.plot(self.data)
-        return self.data
+        return self.data, self.exposuretime
+
+    def on_click_inputtime(self):
+        textboxvalue = self.inputbox.text()
+        self.data, self.exposuretime = self.singleacquisition(float(textboxvalue))
+        self.plot.plot(self.data)
+        return self.data, self.exposuretime
 
     def on_click_continuous(self):
         self.condition = 1
@@ -328,18 +362,40 @@ class Datacontrol(QWidget):
         print("Shutdown returned", ret)
 
 
+
 #
     def on_click_singlesavedata(self):
+        (ret) = cam.Initialize("/usr/local/etc/andor")  # initialise camera
+        (ret, iSerialNumber) = cam.GetCameraSerialNumber()
+        (ret, caps) = cam.GetCapabilities()
+        (ret, grating) = sham.ShamrockGetGrating(0)
+        (ret, lines, blaze, home, offset) = sham.ShamrockGetGratingInfo(0,grating)
+
         datafilename = self.saveFileDialog()
-        file = open(datafilename, 'w')
+        file = open(datafilename, 'w', newline='')
         tsv_writer = csv.writer(file, delimiter='\t')
-        tsv_writer.writerow(['Counts', 'point'])
+        tsv_writer.writerow([now.strftime("%Y-%m-%d %H:%M")])
+        tsv_writer.writerow([])
+        if caps.ulCameraType ==14:
+            tsv_writer.writerow(['Camera Type: InGaAs'])
+        else:
+            tsv_writer.writerow(['Camera Type: unknown'])
+        tsv_writer.writerow(['Camera Serial Number:', iSerialNumber])
+        tsv_writer.writerow([])
+        tsv_writer.writerow(['Grating lines:', lines])
+        tsv_writer.writerow(['Grating blaze:',blaze])
+        tsv_writer.writerow(['Grating offset:', offset])
+        tsv_writer.writerow(['Grating home:', home])
+        tsv_writer.writerow([])
+        tsv_writer.writerow(['Exposure time:', self.exposuretime])
+        tsv_writer.writerow([])
+        tsv_writer.writerow(['Point', 'Counts'])
         datalist = list(self.data)
         for i in range(len(datalist)):
-            tsv_writer.writerow([datalist[i], i])
+            tsv_writer.writerow([i, datalist[i]])
         file.close()
-# filename+'_i'
 
+#kinetic scans click
     # def on_click_tenscans(self):
     #     datarray = self.kineticacquisition(.1, 10, 1)
     #     self.data = datarray
@@ -378,5 +434,7 @@ class WidgetPlot(QWidget):
 
 
 #TODO: add continuous view mode (video mode I think?)
+#TODO: threading for continous mode might make things run smoother
+#TODO: reformatting buttons/text to be bigger
 
 # DataacGui()

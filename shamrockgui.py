@@ -40,7 +40,7 @@ class SpecControlbtns(QWidget):
         self.infliplbl = QLabel('Input Flipper Straight')
         self.outfliplbl = QLabel('Output Flipper Straight')
         self.specstatlbl = QLabel('Spectrometer Initialized')
-        self.gratinglbl = QLabel('1250nm')
+        self.gratinglbl = QLabel('1250')
 
         self.initspecUI()
 
@@ -54,10 +54,10 @@ class SpecControlbtns(QWidget):
         gratingsbtns = self.gratingsbtns()
         update = self.updatelbls()
 
-        speclayout.addWidget(flipbtns, 1, 0)
+        speclayout.addWidget(flipbtns, 1, 0,3,1)
         speclayout.addWidget(gratingsbtns, 0,0)
-        speclayout.addWidget(specbtns, 2,0)
-        speclayout.addWidget(update, 0,1, 3, 3)
+        speclayout.addWidget(specbtns, 4,0)
+        speclayout.addWidget(update, 0,1, 4, 4)
 
         self.setLayout(speclayout)
 
@@ -94,10 +94,10 @@ class SpecControlbtns(QWidget):
         maxoutbtn = QPushButton('Left Output Flipper Mirror', self)
         maxoutbtn.clicked.connect(self.on_click_leftoutflip)
 
-        resetoutbtn = QPushButton('Zero Output Flipper Mirror', self)
+        resetoutbtn = QPushButton('Reset Output Flipper Mirror', self)
         resetoutbtn.clicked.connect(self.on_click_resetoutflip)
 
-        resetinbtn = QPushButton('Zero Input Flipper Mirror', self)
+        resetinbtn = QPushButton('Reset Input Flipper Mirror', self)
         resetinbtn.clicked.connect(self.on_click_resetoutflip)
 
         gbox = QGridLayout()
@@ -117,13 +117,13 @@ class SpecControlbtns(QWidget):
 
     # Creates the gratings control buttons #
     def gratingsbtns(self):
-        grating1 = QPushButton('1250nm Grating', self)
+        grating1 = QPushButton('1250 Grating', self)
         grating1.clicked.connect(self.on_click_switch1)
 
-        grating2 = QPushButton('750nm Grating', self)
+        grating2 = QPushButton('750 Grating', self)
         grating2.clicked.connect(self.on_click_switch2)
 
-        grating3 = QPushButton('1300nm Grating', self)
+        grating3 = QPushButton('1300 Grating', self)
         grating3.clicked.connect(self.on_click_switch3)
 
         gbox = QGridLayout()
@@ -145,12 +145,12 @@ class SpecControlbtns(QWidget):
         groupbox.setLayout(labelslayout) #sets the layout of the update box
         groupbox.setTitle('Shamrock Status Information') #sets the title of the update box
 
-        flipperlayout = QGridLayout()
+        flipperlayout = QVBoxLayout()
         flipperbox = QGroupBox() #creates the sub-box for flipper mirror information
         flipperbox.setLayout(flipperlayout)
         flipperbox.setTitle('Flipper Information:')
-        flipperlayout.addWidget(self.infliplbl, 0 , 0) #calls the input flipper label from the __init__ function
-        flipperlayout.addWidget(self.outfliplbl, 1, 0) #calls the output flipper label from the __init__ function
+        flipperlayout.addWidget(self.infliplbl) #calls the input flipper label from the __init__ function
+        flipperlayout.addWidget(self.outfliplbl) #calls the output flipper label from the __init__ function
 
         statuslayout = QGridLayout()
         statusbox = QGroupBox() #creates the sub-box for the Shamrock status information
@@ -166,9 +166,9 @@ class SpecControlbtns(QWidget):
 
 
         # Adds the sub-boxes to the main update box #
-        labelslayout.addWidget(flipperbox, 0, 0)
-        labelslayout.addWidget(gratingbox, 1, 0)
-        labelslayout.addWidget(statusbox, 2, 0)
+        labelslayout.addWidget(flipperbox, 1, 0, 3,0)
+        labelslayout.addWidget(gratingbox, 0, 0)
+        labelslayout.addWidget(statusbox, 4, 0)
 
         groupbox.setLayout(labelslayout)
 
@@ -227,18 +227,18 @@ class SpecControlbtns(QWidget):
     def on_click_switch1(self):
         print('Grating Switched to 1')
         setgrate = sham.ShamrockSetGrating(0, 1)
-        self.gratinglbl.setText('1250nm')
+        self.gratinglbl.setText('1250')
 
 
     def on_click_switch2(self):
         print('Grating Switched to 2')
         setgrate = sham.ShamrockSetGrating(0, 2)
-        self.gratinglbl.setText('750nm')
+        self.gratinglbl.setText('750')
 
 
     def on_click_switch3(self):
         print('Grating Switched to 3')
         setgrate = sham.ShamrockSetGrating(0, 3)
-        self.gratinglbl.setText('1300nm')
+        self.gratinglbl.setText('1300')
 
 # SpectrometerGui()

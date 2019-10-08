@@ -2,7 +2,7 @@ import sys
 
 from PyQt5.QtWidgets import QToolButton, QMainWindow, QApplication, QPushButton, QWidget, QAction, QTabWidget, QVBoxLayout, QGroupBox, QHBoxLayout, QGridLayout
 
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import pyqtSlot
 from shamrockgui import *
 from dataacgui import *
@@ -26,7 +26,6 @@ class MainGui(QMainWindow):
         sys.exit(app.exec_())
 
 
-
     def initUI(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
@@ -37,7 +36,9 @@ class MainGui(QMainWindow):
 class Spectbtns(QWidget):
     def __init__(self):
         super().__init__()
-        self.title = "Spectrometer Controls"
+        self.fontsize = 14
+
+        self.setFont(QFont('Sans Serif', self.fontsize))
         self.left = 12.5
         self.top = 12.5
         self.width = 275
@@ -47,12 +48,13 @@ class Spectbtns(QWidget):
         grid.addWidget(self.initspecbtns(), 0, 0)
         self.setLayout(grid)
         self.spectrometergui = SpectrometerGui()
+        self.spectrometergui.setFont(QFont('Sans Serif', self.fontsize))
         self.ingaasgui = InGaAsGui()
         self.dataacgui = DataacGui()
+        self.dataacgui.setFont(QFont('Sans Serif', self.fontsize))
 
 
     def initspecbtns(self):
-        self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
 
         shamrockbtn = QPushButton('Shamrock', self)
@@ -67,7 +69,7 @@ class Spectbtns(QWidget):
         dataacbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         dataacbtn.clicked.connect(self.on_click_dataac)
 
-        spectbox = QGroupBox('Spectrometer Controls')
+        spectbox = QGroupBox()
         spectvbox = QVBoxLayout()
         vbox1 = QVBoxLayout()
         spectvbox.addWidget(shamrockbtn)
@@ -91,3 +93,5 @@ class Spectbtns(QWidget):
 
 
 MainGui()
+
+#TODO: start working on floating mirror interface
