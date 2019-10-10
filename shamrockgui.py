@@ -5,9 +5,9 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QAc
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
 
-from pyAndorShamrock import Shamrock
-sham = Shamrock.Shamrock()
-inifile = 'C:\\Users\\R-Lab\\Desktop\\detector.ini'
+# from pyAndorShamrock import Shamrock
+# sham = Shamrock.Shamrock()
+# inifile = 'C:\\Users\\R-Lab\\Desktop\\detector.ini'
 
 class SpectrometerGui(QMainWindow):
     def __init__(self):
@@ -19,7 +19,7 @@ class SpectrometerGui(QMainWindow):
         self.top = 50
         self.width = 400
         self.height = 250
-        sham.ShamrockInitialize(inifile)
+        # sham.ShamrockInitialize(inifile)
         self.initspecUI()
         # sys.exit(app.exec_())
 
@@ -40,7 +40,7 @@ class SpecControlbtns(QWidget):
         self.infliplbl = QLabel('Input Flipper Straight')
         self.outfliplbl = QLabel('Output Flipper Straight')
         self.specstatlbl = QLabel('Spectrometer Initialized')
-        self.gratinglbl = QLabel('1250')
+        self.gratinglbl = QLabel('1250nm')
 
         self.initspecUI()
 
@@ -54,10 +54,10 @@ class SpecControlbtns(QWidget):
         gratingsbtns = self.gratingsbtns()
         update = self.updatelbls()
 
-        speclayout.addWidget(flipbtns, 1, 0,3,1)
+        speclayout.addWidget(flipbtns, 1, 0)
         speclayout.addWidget(gratingsbtns, 0,0)
-        speclayout.addWidget(specbtns, 4,0)
-        speclayout.addWidget(update, 0,1, 4, 4)
+        speclayout.addWidget(specbtns, 2,0)
+        speclayout.addWidget(update, 0,1, 3, 3)
 
         self.setLayout(speclayout)
 
@@ -94,10 +94,10 @@ class SpecControlbtns(QWidget):
         maxoutbtn = QPushButton('Left Output Flipper Mirror', self)
         maxoutbtn.clicked.connect(self.on_click_leftoutflip)
 
-        resetoutbtn = QPushButton('Reset Output Flipper Mirror', self)
+        resetoutbtn = QPushButton('Zero Output Flipper Mirror', self)
         resetoutbtn.clicked.connect(self.on_click_resetoutflip)
 
-        resetinbtn = QPushButton('Reset Input Flipper Mirror', self)
+        resetinbtn = QPushButton('Zero Input Flipper Mirror', self)
         resetinbtn.clicked.connect(self.on_click_resetoutflip)
 
         gbox = QGridLayout()
@@ -117,13 +117,13 @@ class SpecControlbtns(QWidget):
 
     # Creates the gratings control buttons #
     def gratingsbtns(self):
-        grating1 = QPushButton('1250 Grating', self)
+        grating1 = QPushButton('1250nm Grating', self)
         grating1.clicked.connect(self.on_click_switch1)
 
-        grating2 = QPushButton('750 Grating', self)
+        grating2 = QPushButton('750nm Grating', self)
         grating2.clicked.connect(self.on_click_switch2)
 
-        grating3 = QPushButton('1300 Grating', self)
+        grating3 = QPushButton('1300nm Grating', self)
         grating3.clicked.connect(self.on_click_switch3)
 
         gbox = QGridLayout()
@@ -145,12 +145,12 @@ class SpecControlbtns(QWidget):
         groupbox.setLayout(labelslayout) #sets the layout of the update box
         groupbox.setTitle('Shamrock Status Information') #sets the title of the update box
 
-        flipperlayout = QVBoxLayout()
+        flipperlayout = QGridLayout()
         flipperbox = QGroupBox() #creates the sub-box for flipper mirror information
         flipperbox.setLayout(flipperlayout)
         flipperbox.setTitle('Flipper Information:')
-        flipperlayout.addWidget(self.infliplbl) #calls the input flipper label from the __init__ function
-        flipperlayout.addWidget(self.outfliplbl) #calls the output flipper label from the __init__ function
+        flipperlayout.addWidget(self.infliplbl, 0 , 0) #calls the input flipper label from the __init__ function
+        flipperlayout.addWidget(self.outfliplbl, 1, 0) #calls the output flipper label from the __init__ function
 
         statuslayout = QGridLayout()
         statusbox = QGroupBox() #creates the sub-box for the Shamrock status information
@@ -166,9 +166,9 @@ class SpecControlbtns(QWidget):
 
 
         # Adds the sub-boxes to the main update box #
-        labelslayout.addWidget(flipperbox, 1, 0, 3,0)
-        labelslayout.addWidget(gratingbox, 0, 0)
-        labelslayout.addWidget(statusbox, 4, 0)
+        labelslayout.addWidget(flipperbox, 0, 0)
+        labelslayout.addWidget(gratingbox, 1, 0)
+        labelslayout.addWidget(statusbox, 2, 0)
 
         groupbox.setLayout(labelslayout)
 
@@ -182,63 +182,63 @@ class SpecControlbtns(QWidget):
 
     # Shamrock initialization buttons #
     def on_click_close(self):
-        sham.ShamrockClose()
+        # sham.ShamrockClose()
         print('Shutdown Shamrock')
         self.specstatlbl.setText('Shamrock Shutdown')
 
     def on_click_reinit(self):
-        sham.ShamrockInitialize(inifile)
+        # sham.ShamrockInitialize(inifile)
         print('Reinitialize Shamrock')
         self.specstatlbl.setText('Shamrock Initialized')
 
 
     # Shamrock flipper mirror buttons #
     def on_click_resetoutflip(self):
-        zeroinflip = sham.ShamrockFlipperMirrorReset(0, 1)
+        # zeroinflip = sham.ShamrockFlipperMirrorReset(0, 1)
         print('Input Flipper Reset')
         self.infliplbl.setText('Input Flipper Straight')
 
     def on_click_resetinflip(self):
-        zerooutflip = sham.ShamrockFlipperMirrorReset(0, 2)
+        # zerooutflip = sham.ShamrockFlipperMirrorReset(0, 2)
         print('Output Flipper Reset')
         self.outfliplbl.setText('Output Flipper Straight')
 
     def on_click_straightinflip(self):
         print('Input Flipper Straight')
-        direct_inputflipper = sham.ShamrockSetFlipperMirror(0, 1, 0)
+        # direct_inputflipper = sham.ShamrockSetFlipperMirror(0, 1, 0)
         self.infliplbl.setText('Input Flipper Straight')
 
     def on_click_straightoutflip(self):
         print('Output Flipper Straight')
-        direct_outputflipper = sham.ShamrockSetFlipperMirrorPosition(0, 2, 0)
+        # direct_outputflipper = sham.ShamrockSetFlipperMirrorPosition(0, 2, 0)
         self.outfliplbl.setText('Output Flipper Straight')
 
     def on_click_rightinflip(self):
         print('Input Flipper Side')
-        side_inputflipper = sham.ShamrockSetFlipperMirror(0, 1, 1)
+        # side_inputflipper = sham.ShamrockSetFlipperMirror(0, 1, 1)
         self.infliplbl.setText('Input Flipper Side')
 
     def on_click_leftoutflip(self):
         print('Output Flipper Side')
-        side_outputflipper = sham.ShamrockSetFlipperMirror(0, 2, 1)
+        # side_outputflipper = sham.ShamrockSetFlipperMirror(0, 2, 1)
         self.outfliplbl.setText('Output Flipper Side')
 
     # Shamrock gratings buttons #
     def on_click_switch1(self):
         print('Grating Switched to 1')
-        setgrate = sham.ShamrockSetGrating(0, 1)
-        self.gratinglbl.setText('1250')
+        # setgrate = sham.ShamrockSetGrating(0, 1)
+        self.gratinglbl.setText('1250nm')
 
 
     def on_click_switch2(self):
         print('Grating Switched to 2')
-        setgrate = sham.ShamrockSetGrating(0, 2)
-        self.gratinglbl.setText('750')
+        # setgrate = sham.ShamrockSetGrating(0, 2)
+        self.gratinglbl.setText('750nm')
 
 
     def on_click_switch3(self):
         print('Grating Switched to 3')
-        setgrate = sham.ShamrockSetGrating(0, 3)
-        self.gratinglbl.setText('1300')
+        # setgrate = sham.ShamrockSetGrating(0, 3)
+        self.gratinglbl.setText('1300nm')
 
 # SpectrometerGui()

@@ -1,6 +1,6 @@
 import sys
 import numpy as np
-from PyQt5.QtWidgets import QMainWindow,  QApplication, QSizePolicy, QPushButton, QWidget, QVBoxLayout, QGroupBox, QHBoxLayout, QGridLayout, QInputDialog, QLineEdit, QFileDialog
+from PyQt5.QtWidgets import QMainWindow,  QApplication, QSizePolicy, QPushButton, QWidget, QRadioButton, QVBoxLayout, QGroupBox, QHBoxLayout, QGridLayout, QInputDialog, QLineEdit, QFileDialog, QLabel
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
@@ -14,20 +14,6 @@ sham = Shamrock.Shamrock()
 now = datetime.datetime.now()
 
 cam = atmcd()
-
-#
-# inifile = 'C:\\Users\\R-Lab\\Desktop\\cam.ini'
-# cam.Initialize(inifile)
-# print('Camera Initialized')
-# cam.CoolerON()
-# print('Cooler On')
-# cam.SetAcquisitionMode(1) ##Sets acquisition mode to single scan
-# print('Acquisition mode set to single scan')
-# cam.SetTriggerMode(0)
-# (ret, xpixels, ypixels) = cam.GetDetector()
-# imageSize = xpixels * ypixels
-# cam.SetImage(1, 1, 1, xpixels, 1, ypixels)
-
 
 
 class DataacGui(QMainWindow):
@@ -64,7 +50,7 @@ class Datacontrol(QWidget):
         hbox.addStretch(1)
 
         dataaclayout = QGridLayout()
-        actimes = self.presetactimes()
+        actimes = self.presetactimes
         continuous = self.continousbtns()
         mplplt = WidgetPlot()
         self.plot = mplplt
@@ -81,6 +67,7 @@ class Datacontrol(QWidget):
         self.data = None
         self.exposuretime = None
 
+    @property
     def presetactimes(self):
         btnwid = 40
         btnhgt = 100
@@ -168,6 +155,22 @@ class Datacontrol(QWidget):
         groupbox.setTitle('Continuous Scan')
 
         return groupbox
+
+    def fitting(self):
+        fitting = QPushButton('Try Fit', self)
+        self.lorbtn = QRadioButton('Lorentzian')
+        self.gaubtn = QRadioButton('Gaussian')
+
+        self.lorbtn.setChecked(True)
+
+        self.lminfit = QLineEdit()
+        self.lmaxfit = QLineEdit()
+        lmintag = QLabel('Lambda Min')
+        lmaxtag = QLabel('Lambda Max')
+
+        self.ampfit = QLineEdit()
+        ampfittag = QLabel('Amplitude')
+
 
 #kinetic buttons
     # def kineticdatabtns(self):
@@ -360,6 +363,7 @@ class Datacontrol(QWidget):
         self.condition = 0
         (ret) = cam.ShutDown()
         print("Shutdown returned", ret)
+        #todo: implement threading to stop stalling
 
 
 
