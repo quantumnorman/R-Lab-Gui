@@ -7,7 +7,7 @@ from PyQt5.QtCore import pyqtSlot
 from shamrockgui import *
 from dataacgui import *
 from ingaasgui import *
-from mirrorgui import *
+# from mirrorgui import *
 
 
 
@@ -49,7 +49,7 @@ class Spectbtns(QWidget):
         self.spectrometergui = SpectrometerGui()
         self.ingaasgui = InGaAsGui()
         self.dataacgui = DataacGui()
-        self.mirror = MirrorGui()
+        # self.mirror = MirrorGui()
 
 
     def initspecbtns(self):
@@ -63,9 +63,9 @@ class Spectbtns(QWidget):
         ingaasbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         ingaasbtn.clicked.connect(self.on_click_ingaas)
 
-        mirrorbtn = QPushButton('Fast Steering Mirror', self)
-        mirrorbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        mirrorbtn.clicked.connect(self.on_click_mirror)
+        # mirrorbtn = QPushButton('Fast Steering Mirror', self)
+        # mirrorbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        # mirrorbtn.clicked.connect(self.on_click_mirror)
 
         dataacbtn = QPushButton('Data Acquisition', self)
         dataacbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -91,9 +91,9 @@ class Spectbtns(QWidget):
 
     def on_click_shamrock(self):
         self.spectrometergui.show()
-
-    def on_click_mirror(self):
-        self.mirror.show()
+    #
+    # def on_click_mirror(self):
+    #     self.mirror.show()
 
 
 
