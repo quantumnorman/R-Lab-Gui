@@ -5,9 +5,9 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QAc
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
 
-# from pyAndorShamrock import Shamrock
-# sham = Shamrock.Shamrock()
-# inifile = 'C:\\Users\\R-Lab\\Desktop\\detector.ini'
+from pyAndorShamrock import Shamrock
+sham = Shamrock.Shamrock()
+inifile = 'C:\\Users\\R-Lab\\Desktop\\detector.ini'
 
 class SpectrometerGui(QMainWindow):
     def __init__(self):
@@ -19,7 +19,7 @@ class SpectrometerGui(QMainWindow):
         self.top = 50
         self.width = 400
         self.height = 250
-        # sham.ShamrockInitialize(inifile)
+        sham.ShamrockInitialize(inifile)
         self.initspecUI()
         # sys.exit(app.exec_())
 
@@ -40,7 +40,8 @@ class SpecControlbtns(QWidget):
         self.infliplbl = QLabel('Input Flipper Straight')
         self.outfliplbl = QLabel('Output Flipper Straight')
         self.specstatlbl = QLabel('Spectrometer Initialized')
-        self.gratinglbl = QLabel('1250nm')
+        self.gratinglbl = QLabel('1250')
+        sham.ShamrockSetGrating(0,0)
 
         self.initspecUI()
 
@@ -117,13 +118,13 @@ class SpecControlbtns(QWidget):
 
     # Creates the gratings control buttons #
     def gratingsbtns(self):
-        grating1 = QPushButton('1250nm Grating', self)
+        grating1 = QPushButton('1250 Grating', self)
         grating1.clicked.connect(self.on_click_switch1)
 
-        grating2 = QPushButton('750nm Grating', self)
+        grating2 = QPushButton('750 Grating', self)
         grating2.clicked.connect(self.on_click_switch2)
 
-        grating3 = QPushButton('1300nm Grating', self)
+        grating3 = QPushButton('1300 Grating', self)
         grating3.clicked.connect(self.on_click_switch3)
 
         gbox = QGridLayout()
@@ -182,63 +183,69 @@ class SpecControlbtns(QWidget):
 
     # Shamrock initialization buttons #
     def on_click_close(self):
-        # sham.ShamrockClose()
+        sham.ShamrockClose()
         print('Shutdown Shamrock')
         self.specstatlbl.setText('Shamrock Shutdown')
 
     def on_click_reinit(self):
-        # sham.ShamrockInitialize(inifile)
+        sham.ShamrockInitialize(inifile)
         print('Reinitialize Shamrock')
         self.specstatlbl.setText('Shamrock Initialized')
 
 
     # Shamrock flipper mirror buttons #
     def on_click_resetoutflip(self):
-        # zeroinflip = sham.ShamrockFlipperMirrorReset(0, 1)
+        zeroinflip = sham.ShamrockFlipperMirrorReset(0, 1)
         print('Input Flipper Reset')
         self.infliplbl.setText('Input Flipper Straight')
 
     def on_click_resetinflip(self):
-        # zerooutflip = sham.ShamrockFlipperMirrorReset(0, 2)
+        zerooutflip = sham.ShamrockFlipperMirrorReset(0, 2)
         print('Output Flipper Reset')
         self.outfliplbl.setText('Output Flipper Straight')
 
     def on_click_straightinflip(self):
         print('Input Flipper Straight')
-        # direct_inputflipper = sham.ShamrockSetFlipperMirror(0, 1, 0)
+        direct_inputflipper = sham.ShamrockSetFlipperMirror(0, 1, 0)
         self.infliplbl.setText('Input Flipper Straight')
 
     def on_click_straightoutflip(self):
         print('Output Flipper Straight')
-        # direct_outputflipper = sham.ShamrockSetFlipperMirrorPosition(0, 2, 0)
+        direct_outputflipper = sham.ShamrockSetFlipperMirrorPosition(0, 2, 0)
         self.outfliplbl.setText('Output Flipper Straight')
 
     def on_click_rightinflip(self):
         print('Input Flipper Side')
-        # side_inputflipper = sham.ShamrockSetFlipperMirror(0, 1, 1)
+        side_inputflipper = sham.ShamrockSetFlipperMirror(0, 1, 1)
         self.infliplbl.setText('Input Flipper Side')
 
     def on_click_leftoutflip(self):
         print('Output Flipper Side')
-        # side_outputflipper = sham.ShamrockSetFlipperMirror(0, 2, 1)
+        side_outputflipper = sham.ShamrockSetFlipperMirror(0, 2, 1)
         self.outfliplbl.setText('Output Flipper Side')
 
     # Shamrock gratings buttons #
     def on_click_switch1(self):
         print('Grating Switched to 1')
-        # setgrate = sham.ShamrockSetGrating(0, 1)
-        self.gratinglbl.setText('1250nm')
+        setgrate = sham.ShamrockSetGrating(0, 1)
+        calib = sham.ShamrockSetWavelength(0,1288)
+        offset = sham.ShamrockSetDetectorOffset(0, -96)
+        self.gratinglbl.setText('1250')
 
 
     def on_click_switch2(self):
         print('Grating Switched to 2')
-        # setgrate = sham.ShamrockSetGrating(0, 2)
-        self.gratinglbl.setText('750nm')
+        setgrate = sham.ShamrockSetGrating(0, 2)
+        calib = sham.ShamrockSetWavelength(0,1296.5)
+        offset = sham.ShamrockSetDetectorOffset(0, -280)
+        self.gratinglbl.setText('750')
 
 
     def on_click_switch3(self):
         print('Grating Switched to 3')
-        # setgrate = sham.ShamrockSetGrating(0, 3)
-        self.gratinglbl.setText('1300nm')
+        setgrate = sham.ShamrockSetGrating(0, 3)
+        calib = sham.ShamrockSetWavelength(0,1286.89)
+        offset = sham.ShamrockSetDetectorOffset(0, -300)
+        self.gratinglbl.setText('1300')
 
 # SpectrometerGui()

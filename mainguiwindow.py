@@ -1,13 +1,13 @@
 import sys
 
 from PyQt5.QtWidgets import QToolButton, QMainWindow, QApplication, QPushButton, QWidget, QAction, QTabWidget, QVBoxLayout, QGroupBox, QHBoxLayout, QGridLayout
-
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import pyqtSlot
 from shamrockgui import *
 from dataacgui import *
-from ingaasgui import *
-# from mirrorgui import *
+# from ingaasgui import *
+from mirrorgui import *
+
 
 
 
@@ -16,13 +16,14 @@ class MainGui(QMainWindow):
     def __init__(self):
         app = QApplication(sys.argv)
         app.setStyle('Fusion')
+        self.font = QFont('Sans Serif', 12)
+        app.setFont(self.font)
         super(MainGui, self).__init__()
         self.title = 'R-Lab Instrumentation Controls'
         self.left = 200
         self.top = 50
         self.width = 300
         self.height = 300
-        self.setCentralWidget(Spectbtns())
         self.initUI()
         sys.exit(app.exec_())
 
@@ -31,6 +32,8 @@ class MainGui(QMainWindow):
     def initUI(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
+        self.setCentralWidget(Spectbtns())
+
 
         self.show()
 
@@ -47,9 +50,12 @@ class Spectbtns(QWidget):
         grid.addWidget(self.initspecbtns(), 0, 0)
         self.setLayout(grid)
         self.spectrometergui = SpectrometerGui()
-        self.ingaasgui = InGaAsGui()
+        # self.spectrometergui.setFont(self.font)
+        # self.ingaasgui = InGaAsGui()
+        # self.ingaasgui.setFont(self.font)
         self.dataacgui = DataacGui()
-        # self.mirror = MirrorGui()
+        # self.dataacgui.setFont(self.font)
+        self.mirror = MirrorGui()
 
 
     def initspecbtns(self):
@@ -59,28 +65,31 @@ class Spectbtns(QWidget):
         shamrockbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         shamrockbtn.clicked.connect(self.on_click_shamrock)
 
-        ingaasbtn = QPushButton('InGaAs Camera', self)
-        ingaasbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        ingaasbtn.clicked.connect(self.on_click_ingaas)
+        # ingaasbtn = QPushButton('InGaAs Camera', self)
+        # ingaasbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        # ingaasbtn.clicked.connect(self.on_click_ingaas)
 
-        # mirrorbtn = QPushButton('Fast Steering Mirror', self)
-        # mirrorbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        # mirrorbtn.clicked.connect(self.on_click_mirror)
+        mirrorbtn = QPushButton('Fast Steering Mirror', self)
+        mirrorbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        mirrorbtn.clicked.connect(self.on_click_mirror)
 
         dataacbtn = QPushButton('Data Acquisition', self)
         dataacbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         dataacbtn.clicked.connect(self.on_click_dataac)
 
-        spectbox = QGroupBox('Spectrometer Controls')
+        spectbox = QGroupBox()
         spectvbox = QVBoxLayout()
         vbox1 = QVBoxLayout()
         spectvbox.addWidget(shamrockbtn)
-        spectvbox.addWidget(ingaasbtn)
+        # spectvbox.addWidget(ingaasbtn)
         spectvbox.addWidget(dataacbtn)
+        spectvbox.addWidget(mirrorbtn)
         spectvbox.addLayout(vbox1)
         spectbox.setLayout(spectvbox)
 
         return spectbox
+        #TODO: set different groupboxes for data analysis/acquisition vs instrument control
+    #TODO: cooler control? RS232 bits
 
     @pyqtSlot()
     def on_click_ingaas(self):
@@ -92,8 +101,8 @@ class Spectbtns(QWidget):
     def on_click_shamrock(self):
         self.spectrometergui.show()
     #
-    # def on_click_mirror(self):
-    #     self.mirror.show()
+    def on_click_mirror(self):
+        self.mirror.show()
 
 
 

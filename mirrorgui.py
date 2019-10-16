@@ -12,23 +12,22 @@ from atmcd import *
 
 class MirrorGui(QMainWindow):
     def __init__(self):
-        app = QApplication(sys.argv)
+        # app = QApplication(sys.argv)
         super(MirrorGui, self).__init__()
-
         self.title = 'Fast Steering Mirror Control'
         self.left = 200
         self.top = 50
         self.width = 1000
         self.height = 600
         self.initmirrorUI()
-        sys.exit(app.exec_())
+        # sys.exit(app.exec_())
 
     def initmirrorUI(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
         controlbtns = MirrorControlbtns()
         self.setCentralWidget(controlbtns)
-        self.show()
+        # self.show()
 
 class MirrorControlbtns(QWidget):
     def __init__(self):
@@ -244,7 +243,7 @@ class MirrorControlbtns(QWidget):
 
     def roiinteg(self, lmin, lmax, xmin, xmax, ymin, ymax, delx, dely, exptime):
         scandata = self.scan(self, xmin, xmax, ymin, ymax, delx, dely, exptime)
-        #todo: figure out how to convert lambda to points
+        #todo: figure out how to convert lambda to points and/or vice versa
 
 
 
@@ -295,4 +294,4 @@ class WidgetPlot(QWidget):
     def plot(self, data):
         self.canvas.axes.clear()
         self.canvas.plot(data)
-MirrorGui()
+# MirrorGui()

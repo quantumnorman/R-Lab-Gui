@@ -1,9 +1,7 @@
 import sys
 import numpy as np
-from PyQt5.QtWidgets import QMainWindow, QApplication, QSizePolicy, QPushButton, QWidget, QRadioButton, QVBoxLayout, \
-    QGroupBox, QHBoxLayout, QGridLayout, QInputDialog, QLineEdit, QFileDialog, QLabel
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, \
-    NavigationToolbar2QT as NavigationToolbar
+from PyQt5.QtWidgets import QMainWindow,  QApplication, QLabel, QRadioButton, QSizePolicy, QPushButton, QWidget, QVBoxLayout, QGroupBox, QHBoxLayout, QGridLayout, QInputDialog, QLineEdit, QFileDialog
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import csv
@@ -12,8 +10,7 @@ from PyQt5.QtCore import pyqtSlot
 import datetime
 from scipy import optimize
 from pyAndorShamrock import Shamrock
-
-# sham = Shamrock.Shamrock()
+sham = Shamrock.Shamrock()
 
 now = datetime.datetime.now()
 
@@ -52,6 +49,7 @@ class Datacontrol(QWidget):
     def initdataUI(self):
         hbox = QHBoxLayout()
         hbox.addStretch(1)
+        # self.wavelength = np.linspace(0, 512, 512)
 
         dataaclayout = QGridLayout()
         actimes = self.presetactimes
@@ -71,6 +69,7 @@ class Datacontrol(QWidget):
         self.setLayout(dataaclayout)
         self.data = None
         self.exposuretime = None
+        self.getwavel()
 
     @property
     ##########Button Layouts##########
@@ -88,10 +87,12 @@ class Datacontrol(QWidget):
         onesecbtn.setMinimumHeight(btnhgt)
         onesecbtn.clicked.connect(self.on_click_onesecbtn)
 
+
         tensecbtn = QPushButton('10s', self)
         # tensecbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         tensecbtn.setMinimumHeight(btnhgt)
         tensecbtn.clicked.connect(self.on_click_tensecbtn)
+
 
         sixtysecbtn = QPushButton('60s', self)
         # sixtysecbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -125,8 +126,8 @@ class Datacontrol(QWidget):
 
         loadbtn = QPushButton('load data from txt', self)
         loadbtn.setMinimumHeight(btnhgt)
-        # loadbtn.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
-        # loadbtn.clicked.connect(self.on_click_loaddata)
+        loadbtn.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        loadbtn.clicked.connect(self.on_click_loaddata)
 
         btnlay = QGridLayout()
         btnlay.addWidget(savebtn, 0, 0)
@@ -162,6 +163,8 @@ class Datacontrol(QWidget):
 
     def fitting(self):
         fitting = QPushButton('Try Fit', self)
+        fitting.clicked.connect(self.on_click_fitfunc)
+
         self.lorbtn = QRadioButton('Lorentzian')
         self.gaubtn = QRadioButton('Gaussian')
 
@@ -205,14 +208,38 @@ class Datacontrol(QWidget):
         paramfitlay.addWidget(sigmafittag, 2, 0)
         paramfitlay.addWidget(self.sigmafit, 2, 1)
         paramfitbox = QGroupBox()
-        paramfitbox.setTitle('Fitting Parameters')
+        paramfitbox.setTitle('Initial Guess Parameters')
         paramfitbox.setLayout(paramfitlay)
+
+        fitparalay = QGridLayout()
+        retamplbl = QLabel('Amplitude Fit:')
+        retcenlbl = QLabel('Center Fit:')
+        retsiglbl = QLabel('Sigma Fit:')
+        retstdevlbl = QLabel('Standard Dev Fit:')
+        self.retampval = QLabel()
+        self.retcenval = QLabel()
+        self.retsigval = QLabel()
+        self.retstdeval = QLabel()
+        fitparalay.addWidget(retamplbl,0,0)
+        fitparalay.addWidget(retcenlbl, 1,0)
+        fitparalay.addWidget(retsiglbl, 2,0)
+        fitparalay.addWidget(retstdevlbl,3,0)
+        fitparalay.addWidget(self.retampval,0,1)
+        fitparalay.addWidget(self.retcenval, 1,1)
+        fitparalay.addWidget(self.retsigval, 2,1)
+        fitparalay.addWidget(self.retstdeval,3,1)
+
+        fitparabox = QGroupBox()
+        fitparabox.setTitle('Returned Fit Parameters')
+        fitparabox.setLayout(fitparalay)
 
         fitlay = QGridLayout()
         fitlay.addWidget(fitselectbox, 0, 0)
         fitlay.addWidget(roifitbox, 1, 0)
         fitlay.addWidget(paramfitbox, 2, 0)
         fitlay.addWidget(fitting, 5, 0)
+        fitlay.addWidget(fitparabox, 3,0)
+
 
         fitbox = QGroupBox()
         fitbox.setLayout(fitlay)
@@ -265,6 +292,7 @@ class Datacontrol(QWidget):
             (ret) = cam.SetImage(1, 1, 1, xpixels, 1, ypixels)
             (ret) = cam.SetExposureTime(time)
 
+
             (ret) = cam.PrepareAcquisition()
             # Perform Acquisition
             (ret) = cam.StartAcquisition()
@@ -308,21 +336,32 @@ class Datacontrol(QWidget):
             print('Cannot continue, could not initialize camera')
         return data
 
-    def fitfunc(self, func, x, data, amp, center, sigma):
-        if self.lorbtn.isChecked():
-            func = self.lor
-
-        if self.gaubtn.isChecked():
-            func = self.gauss
-
-        popt, _ = optimize.curve_fit(func(x, amp, center, sigma), x, data)
-        return popt
-
     def gauss(self, x, amp, center, sigma):
         return amp * np.exp(-(x - center) ** 2 / (2 * sigma ** 2))
 
     def lor(self, x, amp, center, sigma):
         return amp * sigma ** 2 / (sigma ** 2 + (x - center) ** 2)
+
+    def getwavel(self):
+        a = np.linspace(0, 512, 512)
+        ret, grating = sham.ShamrockGetGrating(0)
+        print(grating)
+        if grating==1:
+            min = 1253.66
+            max = 1364.01
+
+        if grating==2:
+            min = 1
+            max = 512
+
+        if grating==3:
+            min = 1
+            max = 512
+
+        self.wavelength = np.linspace(min, max, 512)
+        return self.wavelength
+
+    #TODO: set up wavelength calibs
 
     # kinetic acquisition
     # def kineticacquisition(self, exposuretime, imagenumber, cycletime):
@@ -380,9 +419,9 @@ class Datacontrol(QWidget):
 
     @pyqtSlot()
     def on_click_pointonesbtn(self):
-        # data = [np.tan(i) for i in range(250)]
         self.data, self.exposuretime = self.singleacquisition(0.1)
-        self.plot.plot(self.data)
+        self.getwavel()
+        self.plot.plot(self.wavelength,self.data)
         return self.data, self.exposuretime
 
     # failed attempt to use single acquisition(time) for on_click(time)
@@ -395,30 +434,37 @@ class Datacontrol(QWidget):
 
     def on_click_onesecbtn(self):
         self.data, self.exposuretime = self.singleacquisition(1)
-        self.plot.plot(self.data)
+        self.plot.plot(self.wavelength,self.data)
+        self.getwavel()
+
         return self.data, self.exposuretime
+
 
     def on_click_tensecbtn(self):
         self.data, self.exposuretime = self.singleacquisition(10)
-        self.plot.plot(self.data)
+        self.getwavel()
+        self.plot.plot(self.wavelength,self.data)
         return self.data, self.exposuretime
+
 
     def on_click_sixtysecbtn(self):
         self.data, self.exposuretime = self.singleacquisition(60)
-        self.plot.plot(self.data)
+        self.getwavel()
+        self.plot.plot(self.wavelength,self.data)
         return self.data, self.exposuretime
 
     def on_click_inputtime(self):
         textboxvalue = self.inputbox.text()
         self.data, self.exposuretime = self.singleacquisition(float(textboxvalue))
-        self.plot.plot(self.data)
+        self.getwavel()
+        self.plot.plot(self.wavelength,self.data)
         return self.data, self.exposuretime
 
     def on_click_continuous(self):
         self.condition = 1
         while self.condition != 0:
             self.data = self.continuousmode()
-            self.plot.plot(self.data)
+            self.plot.plot(self.wavelength, self.data)
             time.sleep(.01)
             QApplication.processEvents()
 
@@ -426,12 +472,12 @@ class Datacontrol(QWidget):
         self.condition = 0
         (ret) = cam.ShutDown()
         print("Shutdown returned", ret)
-        # todo: implement threading to stop stalling
+        # TODO: implement threading to stop stalling
 
-    def on_click_fit(self):
-        data = self.data
-
-
+    def on_click_loaddata(self):
+        self.wavelength, data = self.loadtext()
+        self.data = data
+        self.plot.plot(self.wavelength,self.data)
 
 
     # Formatting save files
@@ -448,9 +494,9 @@ class Datacontrol(QWidget):
         tsv_writer.writerow([now.strftime("%Y-%m-%d %H:%M")])
         tsv_writer.writerow([])
         if caps.ulCameraType == 14:
-            tsv_writer.writerow(['Camera Type: InGaAs'])
+            tsv_writer.writerow(['Camera Type:', 'InGaAs'])
         else:
-            tsv_writer.writerow(['Camera Type: unknown'])
+            tsv_writer.writerow(['Camera Type:', 'unknown'])
         tsv_writer.writerow(['Camera Serial Number:', iSerialNumber])
         tsv_writer.writerow([])
         tsv_writer.writerow(['Grating lines:', lines])
@@ -466,17 +512,60 @@ class Datacontrol(QWidget):
             tsv_writer.writerow([i, datalist[i]])
         file.close()
 
+    def loadtext(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        fileName, _ = QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "",
+                                                  "All Files (*);;Python Files (*.py)", options=options)
+        fileName = str(fileName)
+        print(fileName)
+        self.wavelength, self.data = np.loadtxt(fileName, usecols=(0,1), skiprows=13, unpack=True)
+        return self.wavelength, self.data
 
-# kinetic scans click
-# def on_click_tenscans(self):
-#     datarray = self.kineticacquisition(.1, 10, 1)
-#     self.data = datarray
-#     print(self.data)
-#     return self.data
+    def on_click_fitfunc(self):
+
+        amp = float(self.ampfit.text())
+        center = float(self.centerfit.text())
+        sigma = float(self.centerfit.text())
+
+        data = self.data
+        x = self.wavelength
+
+        if self.lorbtn.isChecked():
+            func = self.lor
+
+        if self.gaubtn.isChecked():
+            func = self.gauss
+
+
+        popt, pcov = optimize.curve_fit(func, x, data, p0=[amp, center, sigma])
+
+        self.ampfitval = popt[0]
+        self.centerfitval = popt[1]
+        self.sigmfitval = popt[2]
+        self.perr = np.sqrt(np.diag(pcov))
+
+        fit = func(x, popt[0], popt[1], popt[2])
+        self.plot.plotfit(x, fit)
+
+        self.retstdeval.setText(str(self.perr))
+        self.retsigval.setText(str(self.sigmfitval))
+        self.retcenval.setText(str(self.centerfitval))
+        self.retampval.setText(str(self.ampfitval))
+        #TODO: reformat value box
+
+        print(popt)
+
+
+#kinetic scans click
+    # def on_click_tenscans(self):
+    #     datarray = self.kineticacquisition(.1, 10, 1)
+    #     self.data = datarray
+    #     print(self.data)
+    #     return self.data
 
 
 ##########Plotting##########
-
 class PlotCanvas(FigureCanvas):
 
     def __init__(self, parent=None):
@@ -488,9 +577,13 @@ class PlotCanvas(FigureCanvas):
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
-    def plot(self, data):
-        self.axes.plot(data, 'r.')
+    def plot(self, x, data):
+        self.axes.plot(x, data, 'r.')
         self.axes.set_title('PyQt Matplotlib Example')
+        self.draw()
+
+    def plotfit(self, x,fit):
+        self.axes.plot(x,fit, 'bo')
         self.draw()
 
 
@@ -503,13 +596,12 @@ class WidgetPlot(QWidget):
         self.layout().addWidget(self.toolbar)
         self.layout().addWidget(self.canvas)
 
-    def plot(self, data):
+    def plot(self, x, data):
         self.canvas.axes.clear()
-        self.canvas.plot(data)
+        self.canvas.plot(x, data)
+    #
+    def plotfit(self,x, fit):
+        self.canvas.plotfit(x, fit)
 
-    def plotfit(self, x, fit):
-        self.canvas.plot(x, fit)
-
-# TODO: threading for continous mode might make things run smoother
 
 # DataacGui()
