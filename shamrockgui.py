@@ -1,6 +1,6 @@
 import sys
 
-from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QAction, QTabWidget, QVBoxLayout, QGroupBox, QHBoxLayout, QGridLayout, QLabel
+from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QAction, QTabWidget, QVBoxLayout, QGroupBox, QHBoxLayout, QGridLayout, QLabel, QLineEdit
 
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
@@ -37,12 +37,30 @@ class SpecControlbtns(QWidget):
         super(SpecControlbtns, self).__init__()
 
         # Initializes the status updating labels #
-        self.infliplbl = QLabel('Input Flipper Straight')
-        self.outfliplbl = QLabel('Output Flipper Straight')
-        self.specstatlbl = QLabel('Spectrometer Initialized')
-        self.gratinglbl = QLabel('1250')
-        sham.ShamrockSetGrating(0,0)
+        ret, gratingset = sham.ShamrockGetGrating(0)
+        self.gratinglbl = QLabel()
+        if gratingset == 1:
+            self.gratinglbl.setText('1250')
+        if gratingset ==2:
+            self.gratinglbl.setText('750')
+        if gratingset ==3:
+            self.gratinglbl.setText('1300')
 
+        self.infliplbl = QLabel()
+        ret, inflipset = sham.ShamrockGetFlipperMirrorPosition(0,1)
+        if inflipset ==0:
+            self.infliplbl.setText('Input Flipper Straight')
+        if inflipset==1:
+            self.infliplbl.setText('Input Flipper Side')
+
+        self.outfliplbl = QLabel()
+        ret, outflipset = sham.ShamrockGetFlipperMirrorPosition(0,2)
+        if outflipset ==0:
+            self.outfliplbl.setText('Output Flipper Straight')
+        if outflipset ==1:
+            self.outfliplbl.setText('Output Flipper Side')
+
+        self.specstatlbl = QLabel('Spectrometer Initialized')
         self.initspecUI()
 
     def initspecUI(self):
@@ -53,12 +71,14 @@ class SpecControlbtns(QWidget):
         specbtns = self.initializespecbtns()
         flipbtns = self.flipspecbtns()
         gratingsbtns = self.gratingsbtns()
+        wavelength = self.wavelengthbox()
         update = self.updatelbls()
 
-        speclayout.addWidget(flipbtns, 1, 0)
-        speclayout.addWidget(gratingsbtns, 0,0)
-        speclayout.addWidget(specbtns, 2,0)
-        speclayout.addWidget(update, 0,1, 3, 3)
+        speclayout.addWidget(flipbtns, 1, 0,1, 2)
+        speclayout.addWidget(gratingsbtns, 0,0,1, 2)
+        speclayout.addWidget(specbtns, 3,0,1,2)
+        speclayout.addWidget(update, 0,4, 3, 4)
+        speclayout.addWidget(wavelength,2,0, 1,1)
 
         self.setLayout(speclayout)
 
@@ -103,7 +123,7 @@ class SpecControlbtns(QWidget):
 
         gbox = QGridLayout()
         gbox.addWidget(zerooutbtn, 0, 0)
-        gbox.addWidget(zeroinbtn, 0, 1)
+        gbox.addWidget(zeroinbtn,0, 1)
         gbox.addWidget(maxoutbtn, 1, 0)
         gbox.addWidget(maxinbtn, 1, 1)
         gbox.addWidget(resetoutbtn, 2,0)
@@ -139,6 +159,22 @@ class SpecControlbtns(QWidget):
 
         return groupbox
 
+    def wavelengthbox(self):
+        self.wavelengthbox = QLineEdit()
+        wavesetbtn = QPushButton('Set Wavelength', self)
+        wavesetbtn.clicked.connect(self.on_click_wavelength)
+
+        gbox = QGridLayout()
+        gbox.addWidget(self.wavelengthbox, 0, 0)
+        gbox.addWidget(wavesetbtn, 0, 1)
+
+
+
+        groupbox = QGroupBox()
+        groupbox.setLayout(gbox)
+        groupbox.setTitle('Set Wavelength')
+
+        return groupbox
     # Creates the separate box for status updates #
     def updatelbls(self):
         labelslayout = QGridLayout()
@@ -165,11 +201,20 @@ class SpecControlbtns(QWidget):
         gratingbox.setLayout(gratinglayout)
         gratinglayout.addWidget(self.gratinglbl, 0, 0) #calls the grating label from the __init__ function
 
+        wavelayout = QGridLayout()
+        wavebox = QGroupBox()
+        wavebox.setLayout(wavelayout)
+        wavebox.setTitle('Wavelength')
+        self.wavelbl = QLabel()
+        wavelayout.addWidget(self.wavelbl, 0,0)
+
+
 
         # Adds the sub-boxes to the main update box #
         labelslayout.addWidget(flipperbox, 0, 0)
         labelslayout.addWidget(gratingbox, 1, 0)
         labelslayout.addWidget(statusbox, 2, 0)
+        labelslayout.addWidget(wavebox,3,0)
 
         groupbox.setLayout(labelslayout)
 
@@ -228,24 +273,43 @@ class SpecControlbtns(QWidget):
     def on_click_switch1(self):
         print('Grating Switched to 1')
         setgrate = sham.ShamrockSetGrating(0, 1)
-        calib = sham.ShamrockSetWavelength(0,1288)
-        offset = sham.ShamrockSetDetectorOffset(0, -96)
-        self.gratinglbl.setText('1250')
+        # calib = sham.ShamrockSetWavelength(0,1035)
+        # offset = sham.ShamrockSetDetectorOffset(0, -96)
+        ret, grate = sham.ShamrockGetGrating(0)
+        print(grate)
+
+        if grate ==1:
+            self.gratinglbl.setText('1250')
 
 
     def on_click_switch2(self):
         print('Grating Switched to 2')
         setgrate = sham.ShamrockSetGrating(0, 2)
-        calib = sham.ShamrockSetWavelength(0,1296.5)
-        offset = sham.ShamrockSetDetectorOffset(0, -280)
-        self.gratinglbl.setText('750')
+        # calib = sham.ShamrockSetWavelength(0,1296.5)
+        # offset = sham.ShamrockSetDetectorOffset(0, -280)
+        ret, grate = sham.ShamrockGetGrating(0)
+        print(grate)
+
+        if grate ==2:
+            self.gratinglbl.setText('750')
 
 
     def on_click_switch3(self):
-        print('Grating Switched to 3')
         setgrate = sham.ShamrockSetGrating(0, 3)
-        calib = sham.ShamrockSetWavelength(0,1286.89)
-        offset = sham.ShamrockSetDetectorOffset(0, -300)
-        self.gratinglbl.setText('1300')
+        # calib = sham.ShamrockSetWavelength(0,1286.89)
+        # offset = sham.ShamrockSetDetectorOffset(0, -300)
+        ret, grate = sham.ShamrockGetGrating(0)
+        print(grate)
+
+        if grate ==3:
+            self.gratinglbl.setText('1300')
+
+    def on_click_wavelength(self):
+        wavel = self.wavelengthbox.text()
+        wavel = float(wavel)
+        sham.ShamrockSetWavelength(0, wavel)
+        self.waveset = sham.ShamrockGetWavelength(0)
+        self.wavelbl.setText(self.waveset)
+
 
 # SpectrometerGui()

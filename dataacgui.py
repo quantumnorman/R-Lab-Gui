@@ -6,7 +6,7 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import csv
 from atmcd import *
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, QThread, pyqtSignal
 import datetime
 from scipy import optimize
 from pyAndorShamrock import Shamrock
@@ -54,6 +54,7 @@ class Datacontrol(QWidget):
         dataaclayout = QGridLayout()
         actimes = self.presetactimes
         continuous = self.continousbtns()
+        background = self.backgroundbtns()
         mplplt = WidgetPlot()
         self.plot = mplplt
         saveload = self.saveloadbtns()
@@ -61,6 +62,7 @@ class Datacontrol(QWidget):
         fit = self.fitting()
 
         dataaclayout.addWidget(actimes, 0, 0)
+        dataaclayout.addWidget(background,3,0,1,2)
         dataaclayout.addWidget(mplplt, 0, 1, 5, 5)
         dataaclayout.addWidget(saveload, 4, 0)
         dataaclayout.addWidget(continuous, 2, 0)
@@ -68,38 +70,45 @@ class Datacontrol(QWidget):
         # dataaclayout.addWidget(kinscans, 2,0)
         self.setLayout(dataaclayout)
         self.data = None
+        self.bkgnd = None
         self.exposuretime = None
-        self.getwavel()
+        # self.getwavel()
 
     @property
     ##########Button Layouts##########
     def presetactimes(self):
         btnwid = 40
-        btnhgt = 100
+        btnhgt = 50
 
         pointonesbtn = QPushButton('0.1s', self)
         # pointonesbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         pointonesbtn.setMinimumHeight(btnhgt)
-        pointonesbtn.clicked.connect(self.on_click_pointonesbtn)
+        pointonesbtn.clicked.connect(lambda: self.on_click_singleacbtn(.1))
 
+        @property
+        ##########Button Layouts##########
+        def presetactimes(self):
+            btnwid = 40
         onesecbtn = QPushButton('1s', self)
         # onesecbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         onesecbtn.setMinimumHeight(btnhgt)
-        onesecbtn.clicked.connect(self.on_click_onesecbtn)
+        onesecbtn.clicked.connect(lambda: self.on_click_singleacbtn(1))
 
 
         tensecbtn = QPushButton('10s', self)
         # tensecbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         tensecbtn.setMinimumHeight(btnhgt)
-        tensecbtn.clicked.connect(self.on_click_tensecbtn)
+        tensecbtn.clicked.connect(lambda: self.on_click_singleacbtn(10))
 
 
         sixtysecbtn = QPushButton('60s', self)
         # sixtysecbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         sixtysecbtn.setMinimumHeight(btnhgt)
-        sixtysecbtn.clicked.connect(self.on_click_sixtysecbtn)
+        sixtysecbtn.clicked.connect(lambda: self.on_click_singleacbtn(60))
 
         self.inputbox = QLineEdit(self)
+        self.inputbox.setText('0.1')
+        self.inputbox.setMaximumWidth(btnhgt)
         self.inputbtn = QPushButton('Acquire (s)', self)
         self.inputbtn.clicked.connect(self.on_click_inputtime)
 
@@ -108,7 +117,7 @@ class Datacontrol(QWidget):
         btnlay.addWidget(onesecbtn, 0, 1)
         btnlay.addWidget(tensecbtn, 0, 2)
         btnlay.addWidget(sixtysecbtn, 0, 3)
-        btnlay.addWidget(self.inputbox, 1, 0, 1, 2)
+        btnlay.addWidget(self.inputbox, 1, 0)
         btnlay.addWidget(self.inputbtn, 1, 2)
 
         groupbox = QGroupBox()
@@ -117,7 +126,7 @@ class Datacontrol(QWidget):
         return groupbox
 
     def saveloadbtns(self):
-        btnhgt = 100
+        btnhgt = 50
 
         savebtn = QPushButton('save data to txt', self)
         # savebtn.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
@@ -139,7 +148,11 @@ class Datacontrol(QWidget):
         return groupbox
 
     def continousbtns(self):
-        btnhgt = 100
+        btnhgt = 50
+
+        self.conexptext = QLineEdit(self)
+        self.conexptext.setText('0.1')
+        self.conexptext.setMaximumWidth(btnhgt)
 
         startbtn = QPushButton('Start Scanning', self)
         startbtn.setMinimumHeight(btnhgt)
@@ -152,12 +165,46 @@ class Datacontrol(QWidget):
         stopbtn.clicked.connect(self.on_click_stopcontinuous)
 
         btnlay = QHBoxLayout()
+        btnlay.addWidget(self.conexptext)
         btnlay.addWidget(startbtn)
         btnlay.addWidget(stopbtn)
 
         groupbox = QGroupBox()
         groupbox.setLayout(btnlay)
         groupbox.setTitle('Continuous Scan')
+
+        return groupbox
+
+    def backgroundbtns(self):
+        btnhgt = 50
+
+        self.bkgrndexptext = QLineEdit(self)
+        self.bkgrndexptext.setText('0.1')
+        self.bkgrndexptext.setMaximumWidth(btnhgt)
+
+        self.usebkgrnd = QRadioButton('Use Background')
+        self.nousebkgrnd = QRadioButton('No Background')
+        self.nousebkgrnd.setChecked(True)
+
+
+        takebkgrnd = QPushButton('Take Background', self)
+        takebkgrnd.setMinimumHeight(btnhgt)
+        takebkgrnd.clicked.connect(self.on_click_takebkgrnd)
+
+        selectbkgrnd = QPushButton('Background from File', self)
+        selectbkgrnd.setMinimumHeight(btnhgt)
+        selectbkgrnd.clicked.connect(self.on_click_selectbkgnd)
+
+        btnlay = QGridLayout()
+        btnlay.addWidget(self.usebkgrnd, 0,0, 1, 2)
+        btnlay.addWidget(self.nousebkgrnd, 0,2, 1, 2)
+        btnlay.addWidget(self.bkgrndexptext,1,0)
+        btnlay.addWidget(takebkgrnd,1,1)
+        btnlay.addWidget(selectbkgrnd,1,2)
+
+        groupbox = QGroupBox()
+        groupbox.setLayout(btnlay)
+        groupbox.setTitle('Background')
 
         return groupbox
 
@@ -272,70 +319,6 @@ class Datacontrol(QWidget):
                                                   "All Files (*);;Text Files (*.txt)", options=options)
         return fileName
 
-    ##########Acquisition Types##########
-
-    def singleacquisition(self, time):
-        print("Intialising Camera")
-        cam = atmcd()  # load the atmcd library
-        (ret) = cam.Initialize("/usr/local/etc/andor")  # initialise camera
-        print("Initialize returned", ret)
-
-        if atmcd.DRV_SUCCESS == ret:
-            (ret, iSerialNumber) = cam.GetCameraSerialNumber()
-
-            # configure the acquisition
-            (ret) = cam.CoolerON()
-            (ret) = cam.SetAcquisitionMode(1)
-            (ret) = cam.SetReadMode(4)
-            (ret) = cam.SetTriggerMode(0)
-            (ret, xpixels, ypixels) = cam.GetDetector()
-            (ret) = cam.SetImage(1, 1, 1, xpixels, 1, ypixels)
-            (ret) = cam.SetExposureTime(time)
-
-
-            (ret) = cam.PrepareAcquisition()
-            # Perform Acquisition
-            (ret) = cam.StartAcquisition()
-            (ret) = cam.WaitForAcquisition()
-
-            imageSize = xpixels * ypixels
-            (ret, fullFrameBuffer) = cam.GetMostRecentImage(imageSize)
-            data = fullFrameBuffer
-            (ret) = cam.ShutDown()
-            print("Shutdown returned", ret)
-        else:
-            print("Cannot continue, could not initialise camera")
-        return data, time
-
-    def continuousmode(self):
-        (ret) = cam.Initialize("/usr/local/etc/andor")
-        if atmcd.DRV_SUCCESS == ret:
-
-            # configure the acquisition
-            (ret) = cam.CoolerON()
-            # print("Function CoolerON returned", ret)
-            print('scan')
-
-            (ret) = cam.SetAcquisitionMode(5)
-            (ret) = cam.SetReadMode(4)
-            (ret) = cam.SetTriggerMode(0)
-            (ret, xpixels, ypixels) = cam.GetDetector()
-            imageSize = xpixels * ypixels
-
-            (ret) = cam.SetImage(1, 1, 1, xpixels, 1, ypixels)
-            (ret) = cam.SetExposureTime(.1)
-            (ret) = cam.SetKineticCycleTime(0)
-
-            (ret) = cam.PrepareAcquisition()
-            (ret) = cam.StartAcquisition()
-            (ret) = cam.WaitForAcquisition()
-            (ret, fullframebuffer) = cam.GetMostRecentImage(imageSize)
-            data = fullframebuffer
-
-        else:
-            print('Cannot continue, could not initialize camera')
-        return data
-
     def gauss(self, x, amp, center, sigma):
         return amp * np.exp(-(x - center) ** 2 / (2 * sigma ** 2))
 
@@ -345,21 +328,22 @@ class Datacontrol(QWidget):
     def getwavel(self):
         a = np.linspace(0, 512, 512)
         ret, grating = sham.ShamrockGetGrating(0)
+        ret, wavel = sham.ShamrockGetWavelength(0)
         print(grating)
         if grating==1:
-            min = 1253.66
-            max = 1364.01
+            min = wavel - 0.2156*255.5 + 0.2156*0.96
+            max = wavel + 0.2156*(0.96 + 255.5)
 
         if grating==2:
-            min = 1
-            max = 512
+            min = wavel - 282.7*255.5
+            max = wavel + 282.7*255.5
 
         if grating==3:
-            min = 1
-            max = 512
+            min = wavel - 826.6*255.5
+            max = wavel + 826.6*255.5
 
-        self.wavelength = np.linspace(min, max, 512)
-        return self.wavelength
+        wavelength = np.linspace(min, max, 512)
+        return wavelength
 
     #TODO: set up wavelength calibs
 
@@ -418,63 +402,95 @@ class Datacontrol(QWidget):
     #     return dataarray #
 
     @pyqtSlot()
-    def on_click_pointonesbtn(self):
-        self.data, self.exposuretime = self.singleacquisition(0.1)
-        self.getwavel()
-        self.plot.plot(self.wavelength,self.data)
-        return self.data, self.exposuretime
-
-    # failed attempt to use single acquisition(time) for on_click(time)
-
-    # def on_click_singleacbtn(self, time):
-    #     fullFramebuffer = self.singleacquisition(time)
-    #     self.data = fullFramebuffer
-    #     self.plot.plot(self.data)
-    #     return self.data
-
-    def on_click_onesecbtn(self):
-        self.data, self.exposuretime = self.singleacquisition(1)
-        self.plot.plot(self.wavelength,self.data)
-        self.getwavel()
-
-        return self.data, self.exposuretime
 
 
-    def on_click_tensecbtn(self):
-        self.data, self.exposuretime = self.singleacquisition(10)
-        self.getwavel()
-        self.plot.plot(self.wavelength,self.data)
-        return self.data, self.exposuretime
-
-
-    def on_click_sixtysecbtn(self):
-        self.data, self.exposuretime = self.singleacquisition(60)
-        self.getwavel()
-        self.plot.plot(self.wavelength,self.data)
-        return self.data, self.exposuretime
+    def on_click_singleacbtn(self, time):
+        self.thread = SingleAcquisitionThread(time)
+        self.thread.start()
+        self.thread.signal.connect(self.on_thread_done)
+        self.wavelength=self.getwavel()
 
     def on_click_inputtime(self):
-        textboxvalue = self.inputbox.text()
-        self.data, self.exposuretime = self.singleacquisition(float(textboxvalue))
-        self.getwavel()
-        self.plot.plot(self.wavelength,self.data)
-        return self.data, self.exposuretime
+        textboxvalue = float(self.inputbox.text())
+        self.thread = SingleAcquisitionThread(textboxvalue)
+        self.thread.start()
+        self.thread.signal.connect(self.on_thread_done)
+        self.wavelength=self.getwavel()
+
+    def on_thread_done(self, data):
+        self.plot.plot(self.wavelength,data)
+        self.data = data
+
+    def on_thread_done_bkgnd(self, data):
+        self.bkgnd = data
+
+    def on_click_takebkgrnd(self):
+        textboxvalue = float(self.bkgrndexptext.text())
+        self.thread = SingleAcquisitionThread(textboxvalue)
+        self.thread.start()
+        self.thread.signal.connect(self.on_thread_done_bkgnd)
+        (ret) = cam.Initialize("/usr/local/etc/andor")  # initialise camera
+        (ret, iSerialNumber) = cam.GetCameraSerialNumber()
+        (ret, caps) = cam.GetCapabilities()
+        (ret, grating) = sham.ShamrockGetGrating(0)
+        (ret, lines, blaze, home, offset) = sham.ShamrockGetGratingInfo(0, grating)
+
+        self.bkgrndatafilename = self.saveFileDialog()
+        file = open(self.bkgrndatafilename, 'w', newline='')
+        tsv_writer = csv.writer(file, delimiter='\t')
+        tsv_writer.writerow([now.strftime("%Y-%m-%d %H:%M")])
+        tsv_writer.writerow([])
+        if caps.ulCameraType == 14:
+            tsv_writer.writerow(['Camera Type:', 'InGaAs'])
+        else:
+            tsv_writer.writerow(['Camera Type:', 'unknown'])
+        tsv_writer.writerow(['Camera Serial Number:', iSerialNumber])
+        tsv_writer.writerow([])
+        tsv_writer.writerow(['Grating lines:', lines])
+        tsv_writer.writerow(['Grating blaze:', blaze])
+        tsv_writer.writerow(['Grating offset:', offset])
+        tsv_writer.writerow(['Grating home:', home])
+        tsv_writer.writerow([])
+        tsv_writer.writerow(['Exposure time:', self.exposuretime])
+        tsv_writer.writerow([])
+        tsv_writer.writerow(['Point', 'Counts'])
+        datalist = list(self.bkgnd)
+        for i in range(len(datalist)):
+            tsv_writer.writerow([i, datalist[i]])
+        file.close()
+
+    def on_click_selectbkgnd(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        self.bkgrndatafilename, _ = QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "",
+                                                  "All Files (*);;Python Files (*.py)", options=options)
+        self.bkgrndatafilename = str(self.bkgrndatafilename)
+        print(self.bkgrndatafilename)
+        if not self.bkgrndatafilename: return
+        self.wavelength, self.data = np.loadtxt(self.bkgrndatafilename, usecols=(0,1), skiprows=13, unpack=True)
+        return self.wavelength, self.bkgnd
 
     def on_click_continuous(self):
-        self.condition = 1
-        while self.condition != 0:
-            self.data = self.continuousmode()
-            self.plot.plot(self.wavelength, self.data)
-            time.sleep(.01)
-            QApplication.processEvents()
+        time = float(self.conexptext.text())
+        self.thread = ContinuousAcquisitionThread(time)
+        self.thread.start()
+        self.thread.signal.connect(self.on_thread_done)
+        self.wavelength = self.getwavel()
+
+        # self.condition = 1
+        # while self.condition != 0:
+        #     self.data = self.continuousmode()
+        #     self.plot.plot(self.wavelength, self.data)
+        #     time.sleep(.01)
+        #     QApplication.processEvents()
 
     def on_click_stopcontinuous(self):
-        self.condition = 0
-        (ret) = cam.ShutDown()
-        print("Shutdown returned", ret)
+        self.thread.halt()
+        # print("Shutdown returned", ret)
         # TODO: implement threading to stop stalling
 
     def on_click_loaddata(self):
+
         self.wavelength, data = self.loadtext()
         self.data = data
         self.plot.plot(self.wavelength,self.data)
@@ -519,6 +535,7 @@ class Datacontrol(QWidget):
                                                   "All Files (*);;Python Files (*.py)", options=options)
         fileName = str(fileName)
         print(fileName)
+        if not fileName: return
         self.wavelength, self.data = np.loadtxt(fileName, usecols=(0,1), skiprows=13, unpack=True)
         return self.wavelength, self.data
 
@@ -604,4 +621,90 @@ class WidgetPlot(QWidget):
         self.canvas.plotfit(x, fit)
 
 
+class SingleAcquisitionThread(QThread):
+
+    signal = pyqtSignal('PyQt_PyObject')
+
+    def __init__(self, time):
+        QThread.__init__(self)
+        self.time = time
+
+    def run(self):
+        print("Intialising Camera")
+        cam = atmcd()  # load the atmcd library
+        (ret) = cam.Initialize("/usr/local/etc/andor")  # initialise camera
+        print("Initialize returned", ret)
+
+        if atmcd.DRV_SUCCESS == ret:
+            (ret, iSerialNumber) = cam.GetCameraSerialNumber()
+
+            # configure the acquisition
+            (ret) = cam.CoolerON()
+            (ret) = cam.SetAcquisitionMode(1)
+            (ret) = cam.SetReadMode(4)
+            (ret) = cam.SetTriggerMode(0)
+            (ret, xpixels, ypixels) = cam.GetDetector()
+            (ret) = cam.SetImage(1, 1, 1, xpixels, 1, ypixels)
+            (ret) = cam.SetExposureTime(self.time)
+
+            (ret) = cam.PrepareAcquisition()
+            # Perform Acquisition
+            (ret) = cam.StartAcquisition()
+            (ret) = cam.WaitForAcquisition()
+
+            imageSize = xpixels * ypixels
+            (ret, fullFrameBuffer) = cam.GetMostRecentImage(imageSize)
+            data = fullFrameBuffer
+            (ret) = cam.ShutDown()
+            print("Shutdown returned", ret)
+        else:
+            print("Cannot continue, could not initialise camera")
+        self.signal.emit(data)
+
+
+class ContinuousAcquisitionThread(QThread):
+
+    signal = pyqtSignal('PyQt_PyObject')
+
+    def __init__(self, time):
+        QThread.__init__(self)
+        self.time = time
+        self.condition = 1
+
+    def run(self):
+        print("Intialising Camera")
+        cam = atmcd()  # load the atmcd library
+        (ret) = cam.Initialize("/usr/local/etc/andor")
+        if atmcd.DRV_SUCCESS == ret:
+
+            # configure the acquisition
+            (ret) = cam.CoolerON()
+            # print("Function CoolerON returned", ret)
+            print('scan')
+
+            (ret) = cam.SetAcquisitionMode(5)
+            (ret) = cam.SetReadMode(4)
+            (ret) = cam.SetTriggerMode(0)
+            (ret, xpixels, ypixels) = cam.GetDetector()
+            imageSize = xpixels * ypixels
+
+            (ret) = cam.SetImage(1, 1, 1, xpixels, 1, ypixels)
+            (ret) = cam.SetExposureTime(self.time)
+            (ret) = cam.SetKineticCycleTime(0)
+            while self.condition == 1:
+                (ret) = cam.PrepareAcquisition()
+                (ret) = cam.StartAcquisition()
+                (ret) = cam.WaitForAcquisition()
+                (ret, fullframebuffer) = cam.GetMostRecentImage(imageSize)
+                data = fullframebuffer
+                self.signal.emit(data)
+                # time.sleep(.01)
+
+        else:
+            print('Cannot continue, could not initialize camera')
+    def halt(self):
+        self.condition = 0
+
 # DataacGui()
+
+#TODO inplement actually using background subtraction, figure out how saving the files should go
