@@ -65,9 +65,9 @@ class Spectbtns(QWidget):
         shamrockbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         shamrockbtn.clicked.connect(self.on_click_shamrock)
 
-        # ingaasbtn = QPushButton('InGaAs Camera', self)
-        # ingaasbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        # ingaasbtn.clicked.connect(self.on_click_ingaas)
+        ingaasbtn = QPushButton('InGaAs Camera', self)
+        ingaasbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        ingaasbtn.clicked.connect(self.on_click_ingaas)
 
         mirrorbtn = QPushButton('Fast Steering Mirror', self)
         mirrorbtn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -103,7 +103,6 @@ class Spectbtns(QWidget):
     #
     def on_click_mirror(self):
         self.mirror.show()
-
 
 
 MainGui()

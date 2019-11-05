@@ -9,7 +9,9 @@ from pyAndorShamrock import Shamrock
 sham = Shamrock.Shamrock()
 inifile = 'C:\\Users\\R-Lab\\Desktop\\detector.ini'
 
+#This class sets up the window and framework for the spectrometer controls
 class SpectrometerGui(QMainWindow):
+    # This and initspecui sets some default values to load in upon startup
     def __init__(self):
         # app = QApplication(sys.argv)
         # app.setStyle('Fusion')
@@ -31,7 +33,7 @@ class SpectrometerGui(QMainWindow):
         self.setCentralWidget(controlbtns)
         # self.show()
 
-
+#This class defines the qwidgets for the spectrometer controls
 class SpecControlbtns(QWidget):
     def __init__(self):
         super(SpecControlbtns, self).__init__()
@@ -61,9 +63,9 @@ class SpecControlbtns(QWidget):
             self.outfliplbl.setText('Output Flipper Side')
 
         self.specstatlbl = QLabel('Spectrometer Initialized')
-        self.initspecUI()
-
-    def initspecUI(self):
+        self.btnslayout()
+    #This sets up the layout for the buttons
+    def btnslayout(self):
         hbox = QHBoxLayout()
         hbox.addStretch(1)
 
@@ -82,10 +84,15 @@ class SpecControlbtns(QWidget):
 
         self.setLayout(speclayout)
 
+    #The following few functions are for setting up and laying out the various buttons
+    #It follows a basic outline: 1) intialising the buttons
+                                #2) adding the buttons to a layout
+                                #3) adding the buttons to a groupbox which what the fuction returns when called upstream in btnslayout
     # Creates the initialization control buttons #
     def initializespecbtns(self):
-        closebtn = QPushButton('Shutdown Shamrock', self)
-        closebtn.clicked.connect(self.on_click_close)
+
+        closebtn = QPushButton('Shutdown Shamrock', self) #this creates a button
+        closebtn.clicked.connect(self.on_click_close) #this assigns a function (defined below) to be executed when clicked
 
         reinitbtn = QPushButton('Reinitialize Shamrock', self)
         reinitbtn.clicked.connect(self.on_click_reinit)
@@ -159,16 +166,15 @@ class SpecControlbtns(QWidget):
 
         return groupbox
 
+    # Creates the set wavelength box #
     def wavelengthbox(self):
-        self.wavelengthbox = QLineEdit()
-        wavesetbtn = QPushButton('Set Wavelength', self)
+        self.wavelengthbox = QLineEdit() #this defines a textbox
+        wavesetbtn = QPushButton('Set Wavelength', self) #this defines the button
         wavesetbtn.clicked.connect(self.on_click_wavelength)
 
         gbox = QGridLayout()
         gbox.addWidget(self.wavelengthbox, 0, 0)
         gbox.addWidget(wavesetbtn, 0, 1)
-
-
 
         groupbox = QGroupBox()
         groupbox.setLayout(gbox)
@@ -222,7 +228,7 @@ class SpecControlbtns(QWidget):
 
 
 
-
+    #Below are the signals that actually make the buttons work at all
 
     @pyqtSlot()
 
@@ -304,12 +310,13 @@ class SpecControlbtns(QWidget):
         if grate ==3:
             self.gratinglbl.setText('1300')
 
+    # Set wavelength button and textbox #
     def on_click_wavelength(self):
-        wavel = self.wavelengthbox.text()
-        wavel = float(wavel)
+        wavel = self.wavelengthbox.text() #this reads in the text written in the textbox wavelengthbox
+        wavel = float(wavel) #this converts the text from a string to a float
         sham.ShamrockSetWavelength(0, wavel)
         self.waveset = sham.ShamrockGetWavelength(0)
-        self.wavelbl.setText(self.waveset)
+        self.wavelbl.setText(self.waveset) #this updates the label on the side
 
 
 # SpectrometerGui()
