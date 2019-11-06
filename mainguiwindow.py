@@ -5,7 +5,7 @@ from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import pyqtSlot
 from shamrockgui import *
 from dataacgui import *
-# from ingaasgui import *
+from ingaasgui import *
 from mirrorgui import *
 
 
@@ -16,9 +16,9 @@ class MainGui(QMainWindow):
     def __init__(self):
         app = QApplication(sys.argv)
         app.setStyle('Fusion')
+        super(MainGui, self).__init__()
         self.font = QFont('Sans Serif', 12)
         app.setFont(self.font)
-        super(MainGui, self).__init__()
         self.title = 'R-Lab Instrumentation Controls'
         self.left = 200
         self.top = 50
@@ -51,7 +51,7 @@ class Spectbtns(QWidget):
         self.setLayout(grid)
         self.spectrometergui = SpectrometerGui()
         # self.spectrometergui.setFont(self.font)
-        # self.ingaasgui = InGaAsGui()
+        self.ingaasgui = InGaAsGui()
         # self.ingaasgui.setFont(self.font)
         self.dataacgui = DataacGui()
         # self.dataacgui.setFont(self.font)
@@ -81,7 +81,7 @@ class Spectbtns(QWidget):
         spectvbox = QVBoxLayout()
         vbox1 = QVBoxLayout()
         spectvbox.addWidget(shamrockbtn)
-        # spectvbox.addWidget(ingaasbtn)
+        spectvbox.addWidget(ingaasbtn)
         spectvbox.addWidget(dataacbtn)
         spectvbox.addWidget(mirrorbtn)
         spectvbox.addLayout(vbox1)

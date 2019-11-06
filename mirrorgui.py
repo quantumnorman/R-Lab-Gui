@@ -8,6 +8,23 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from atmcd import *
+import nidaqmx
+
+ytaskwrite = nidaqmx.Task()
+ytaskwrite.ao_channels.add_ao_voltage_chan('Dev1/ao0')
+
+xtaskwrite = nidaqmx.Task()
+xtaskwrite.ao_channels.add_ao_voltage_chan('Dev1/ao1')
+
+umwidth = 10.
+pixwidth = 40.
+
+microncalib = pixwidth/umwidth
+
+voltstep = 0.25
+pixstep = 14
+
+voltcalib = voltstep/pixstep
 
 
 class MirrorGui(QMainWindow):
@@ -32,6 +49,9 @@ class MirrorGui(QMainWindow):
 class MirrorControlbtns(QWidget):
     def __init__(self):
         super(MirrorControlbtns, self).__init__()
+        ytaskwrite.write([0])
+        xtaskwrite.write([0])
+
         self.xpos = 0
         self.ypos = 0
         # Initializes the status updating labels #

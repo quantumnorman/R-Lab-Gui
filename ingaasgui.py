@@ -10,8 +10,8 @@ cam = atmcd()
 
 class InGaAsGui(QMainWindow):
     def __init__(self):
-        app = QApplication(sys.argv)
-        app.setStyle('Fusion')
+        # app = QApplication(sys.argv)
+        # app.setStyle('Fusion')
         super(InGaAsGui, self).__init__()
         self.title = 'InGaAs Camera Control'
         self.left = 50
@@ -19,14 +19,14 @@ class InGaAsGui(QMainWindow):
         # self.width = 500
         # self.height = 500
         self.initingaasUI()
-        sys.exit(app.exec_())
+        # sys.exit(app.exec_())
 
     def initingaasUI(self):
         self.setWindowTitle(self.title)
         # self.setGeometry(self.left, self.top, self.width, self.height)
 
         self.setCentralWidget(cameracontrols())
-        self.show()
+        # self.show()
 
 class cameracontrols(QWidget):
     def __init__(self):
@@ -116,4 +116,4 @@ class cameracontrols(QWidget):
         if ret == 20002:
             self.coolerlbl.setText('Cooler Off')
 
-InGaAsGui()
+# InGaAsGui()
