@@ -313,25 +313,29 @@ class Datacontrol(QWidget):
         return amp * sigma ** 2 / (sigma ** 2 + (x - center) ** 2)
 
     def getwavel(self):
-        a = np.linspace(0, 512, 512)
-        ret, grating = sham.ShamrockGetGrating(0)
-        ret, wavel = sham.ShamrockGetWavelength(0)
-        print(grating)
-        if grating == 1:
-            min = wavel - 0.2156 * 255.5 + 0.2156 * 0.96
-            max = wavel + 0.2156 * (0.96 + 255.5)
+        ret, self.waveset = sham.ShamrockGetWavelength(0)
+        ret, self.gratingset = sham.ShamrockGetGrating(0)
 
-        if grating == 2:
-            min = wavel - 282.7 * 255.5
-            max = wavel + 282.7 * 255.5
+        if self.gratingset == 1:
+            wavemin = self.waveset - 55.185
+            wavemax = self.waveset + 55.185
+            wavelength = np.linspace(wavemin, wavemax, 512)
+            # print(wavelength)
+            return wavelength
 
-        if grating == 3:
-            min = wavel - 826.6 * 255.5
-            max = wavel + 826.6 * 255.5
+        if self.gratingset == 2:
+            wavemin = self.waveset - 12.225
+            wavemax = self.waveset + 12.225
+            wavelength = np.linspace(wavemin, wavemax, 512)
+            # print(wavelength)
+            return wavelength
 
-        wavelength = np.linspace(min, max, 512)
-        return wavelength
-    # TODO: set up wavelength calibs
+        if self.gratingset == 3:
+            wavemin = self.waveset - 6.93
+            wavemax = self.waveset + 6.93
+            wavelength = np.linspace(wavemin, wavemax, 512)
+            # print(wavelength)
+            return wavelength
 
 
 # kinetic acquisition
@@ -526,8 +530,7 @@ class Datacontrol(QWidget):
         tsv_writer.writerow(['Point', 'Counts']) #writes the data
         datalist = list(self.data)
         for i in range(len(datalist)):
-            tsv_writer.writerow([i, datalist[i]])
-            #TODO: include wavelength
+            tsv_writer.writerow([i, self.wavelength[i], datalist[i]])
         file.close()
 
     #Fitting functions
@@ -593,7 +596,7 @@ class PlotCanvas(FigureCanvas): #this creates a matplotlib canvas and defines so
 
     def plot(self, x, data):
         self.axes.plot(x, data, 'r.')
-        self.axes.set_title('PyQt Matplotlib Example')
+        self.axes.set_title('Title')
         self.draw()
 
     def plotfit(self, x, fit): #this is here to make sure the plot doesn't clear when trying to plot a fitting function

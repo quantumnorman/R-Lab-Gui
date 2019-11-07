@@ -315,7 +315,8 @@ class SpecControlbtns(QWidget):
         wavel = self.wavelengthbox.text() #this reads in the text written in the textbox wavelengthbox
         wavel = float(wavel) #this converts the text from a string to a float
         sham.ShamrockSetWavelength(0, wavel)
-        self.waveset = sham.ShamrockGetWavelength(0)
+        ret, self.waveset = sham.ShamrockGetWavelength(0)
+        self.waveset = str(self.waveset)
         self.wavelbl.setText(self.waveset) #this updates the label on the side
 
 

@@ -85,14 +85,16 @@ class cameracontrols(QWidget):
         layout.addWidget(self.templbl, 1, 1)
         layout.addWidget(self.coolerlbl, 0, 1)
         layout.addWidget(coolstatus, 0, 0)
-
         groupbox.setLayout(layout)
         return groupbox
 
     def updatetemplbl(self):
-        self.temp = cam.GetTemperature()
-        self.temp = str(self.temp)
-        self.templbl.setText(self.temp)
+        ret, self.temp = cam.GetTemperature()
+        if ret==20075:
+            self.templbl.setText('Camera not initialized')
+        else:
+            self.temp = str(self.temp)
+            self.templbl.setText(self.temp)
 
     @pyqtSlot()
     def on_click_settemp(self): #defines the function associated with the set temperature button
@@ -109,8 +111,6 @@ class cameracontrols(QWidget):
         ret = cam.CoolerON()
         if ret == 20075:
             self.coolerlbl.setText('Camera not initialized')
-        # if ret == 20002:
-            # self.initlbl.setText('Cooler On')
     def on_click_cooleroff(self):
         ret = cam.CoolerOFF()
         if ret == 20002:

@@ -1,5 +1,5 @@
 import sys
-
+from bisect import bisect_left
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QAction, QTabWidget, QVBoxLayout, QGroupBox, QHBoxLayout, QGridLayout, QLabel, QLineEdit, QSizePolicy
 import numpy as np
 from PyQt5.QtGui import QIcon
@@ -9,12 +9,22 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from atmcd import *
 import nidaqmx
+import dataacgui
+from pyAndorShamrock import Shamrock
+sham = Shamrock.Shamrock()
+inifile = 'C:\\Users\\R-Lab\\Desktop\\detector.ini'
+sham.ShamrockInitialize(inifile)
 
 ytaskwrite = nidaqmx.Task()
 ytaskwrite.ao_channels.add_ao_voltage_chan('Dev1/ao0')
 
 xtaskwrite = nidaqmx.Task()
 xtaskwrite.ao_channels.add_ao_voltage_chan('Dev1/ao1')
+
+xtaskread = nidaqmx.Task()
+xtaskread.ai_channels.add_ai_voltage_chan('Dev1/ai5')
+#TODO: check input paths
+
 
 umwidth = 10.
 pixwidth = 40.
@@ -26,6 +36,8 @@ pixstep = 14
 
 voltcalib = voltstep/pixstep
 
+xcenterpoint = 512
+ycenterpoint = 512
 
 class MirrorGui(QMainWindow):
     def __init__(self):
@@ -44,6 +56,7 @@ class MirrorGui(QMainWindow):
         self.setGeometry(self.left, self.top, self.width, self.height)
         controlbtns = MirrorControlbtns()
         self.setCentralWidget(controlbtns)
+
         # self.show()
 
 class MirrorControlbtns(QWidget):
@@ -113,6 +126,7 @@ class MirrorControlbtns(QWidget):
         return xgroup
     def yscansettings(self):
         self.deltaybox = QLineEdit()
+        self.deltaybox.setText('10')
         self.deltaylabel = QLabel('Delta Y')
         self.yminbox = QLineEdit()
         self.yminlabel = QLabel('Y Min')
@@ -127,6 +141,7 @@ class MirrorControlbtns(QWidget):
         ylay.addWidget(self.ymaxbox,0,3)
         ylay.addWidget(self.deltaylabel, 0,4)
         ylay.addWidget(self.deltaybox, 0, 5)
+
 
         ygroup = QGroupBox()
         ygroup.setLayout(ylay)
@@ -159,7 +174,7 @@ class MirrorControlbtns(QWidget):
 
     def runscan(self):
         runbtn = QPushButton('Run Scan')
-        # runbtn.clicked.connect(self.on_click_runscan)
+        runbtn.clicked.connect(self.on_click_runscan)
 
         return runbtn
 
@@ -180,10 +195,20 @@ class MirrorControlbtns(QWidget):
 
         movebox = QGroupBox()
         movebox.setLayout(movelay)
+
+
+        self.deltaybox.setText('10')
+        self.deltaxbox.setText('10')
+        self.deltatbox.setText('0.1')
+        self.xminbox.setText('300')
+        self.xmaxbox.setText('350')
+        self.ymaxbox.setText('350')
+        self.yminbox.setText('300')
+        self.lambdaminbox.setText('1305')
+        self.lambdamaxbox.setText('1295')
+
         return movebox
     #todo: add 'move by'
-
-
 
 
     def readboxes(self):
@@ -206,11 +231,11 @@ class MirrorControlbtns(QWidget):
 
         return xmin, xmax, delx, ymin, ymax, dely, lmin, lmax, exptime, xsteps, ysteps
 
-    def scan(self, xmin, xmax, ymin, ymax, delx, dely, exptime):
+    def scan(self, xmin, xmax, delx, ymin, ymax, dely, lmin, lmax, exptime, xsteps, ysteps):
+        xsteps = round((xmax-xmin)/delx)
+        ysteps = round((ymax-ymin)/dely)
 
-        xsteps = np.rint((xmax-xmin)/delx)
-        ysteps = np.rint((ymax-ymin)/dely)
-
+        self.dataarray = np.zeros((ysteps, xsteps))
 
         print("Intialising Camera")
         cam = atmcd()  # load the atmcd library
@@ -230,77 +255,118 @@ class MirrorControlbtns(QWidget):
             (ret) = cam.SetExposureTime(exptime)
 
             imageSize = xpixels * ypixels
-            y = ymin
-            x = xmin
-            self.dataarray = np.zeroes((ysteps, xsteps, imageSize))
 
+            yvolt = (ymin-ycenterpoint)*voltcalib
+
+            wavelength = self.find_wavelength()
+
+            roilow = bisect_left(wavelength, lmin)
+            roihigh = bisect_left(wavelength, lmax)
             for i in range(ysteps):
                 # move to y
-
+                ytaskwrite.write(yvolt)
+                # print('yvolt=',yvolt)
+                xvolt = (xmin - xcenterpoint) * voltcalib
 
                 for j in range(xsteps):
                     # move to x and acquire
+                    xtaskwrite.write(xvolt)
+                    # print('xvolt=',xvolt)
+
                     (ret) = cam.PrepareAcquisition()
                     # Perform Acquisition
                     (ret) = cam.StartAcquisition()
+                    print('starting')
                     (ret) = cam.WaitForAcquisition()
                     (ret, fullFrameBuffer) = cam.GetMostRecentImage(imageSize)
                     data = fullFrameBuffer
                     data = list(data)
 
-                    for k in range(xpixels):
-                        self.dataarray[i][j][k] = data[k]
+                    # print('roilow=',roilow)
+                    # print('rohigh=',roihigh)
 
-                    x = xmin + j * delx
-                y = ymin + i * dely
+                    data = sum(data[roilow:roihigh])
+                    self.dataarray[i][j] = data
+                    # self.dataarray[i][j] = i+j
+                    time.sleep(0.05)
+                    xvolt = xvolt+delx*voltcalib
+                    self.plot.plot(self.dataarray, xmin, xmax, ymin, ymax)
+                    QApplication.processEvents()
+                    print("Step", j)
+
+                yvolt=yvolt+dely*voltcalib
             (ret) = cam.ShutDown()
             print("Shutdown returned", ret)
-#todo calibrate voltage and movement
+            print('Finished')
         else:
             print("Cannot continue, could not initialise camera")
 
-        return self.dataarray
-
-    def roiinteg(self, lmin, lmax, xmin, xmax, ymin, ymax, delx, dely, exptime):
-        scandata = self.scan(self, xmin, xmax, ymin, ymax, delx, dely, exptime)
-        #todo: figure out how to convert lambda to points and/or vice versa
-
-
-
+        ytaskwrite(0)
+        xtaskwrite(0)
     @pyqtSlot()
 
     def on_click_movex(self):
-        xmove = self.xmovetxt.text()
+        xmove = float(self.xmovetxt.text())
+        xvolt = xmove * voltcalib
+        xtaskwrite(xvolt)
         print('Move to x')
         #todo add functionality
 
     def on_click_movey(self):
         ymove = self.ymovetxt.text()
+        yvolt = ymove * voltcalib
+        ytaskwrite(yvolt)
         print('Move to y')
         #todo: add functionality
 
+    def on_click_runscan(self):
+        xmin, xmax, delx, ymin, ymax, dely, lmin, lmax, exptime, xsteps, ysteps =self.readboxes()
+        self.scan(xmin, xmax, delx, ymin, ymax, dely, lmin, lmax, exptime, xsteps, ysteps)
 
-    # def on_click_runscan(self):
-    #     xmin = self.inputbox.text()
-    #     self.data, self.exposuretime = self.singleacquisition(float(xmin))
-    #     self.plot.plot(self.data)
-    #     return self.data, self.exposuretime
+    def find_wavelength(self):
+        ret, self.waveset = sham.ShamrockGetWavelength(0)
+        ret, self.gratingset = sham.ShamrockGetGrating(0)
+
+        if self.gratingset==1:
+            wavemin = self.waveset-55.185
+            wavemax = self.waveset+55.185
+            wavelength = np.linspace(wavemin, wavemax, 512)
+            # print(wavelength)
+            return wavelength
+
+        if self.gratingset==2:
+            wavemin = self.waveset-12.225
+            wavemax = self.waveset+12.225
+            wavelength = np.linspace(wavemin, wavemax, 512)
+            # print(wavelength)
+            return wavelength
+
+        if self.gratingset == 3:
+            wavemin = self.waveset-6.93
+            wavemax = self.waveset+6.93
+            wavelength = np.linspace(wavemin, wavemax, 512)
+            # print(wavelength)
+            return wavelength
+
 
 class PlotCanvas(FigureCanvas):
 
     def __init__(self, parent=None):
-        fig = Figure()
-        self.axes = fig.add_subplot(111)
-        FigureCanvas.__init__(self, fig)
+        self.fig = Figure()
+        self.axes = self.fig.add_subplot(111)
+        self.axes.set_title('Area Heatmap Scan')
+        FigureCanvas.__init__(self, self.fig)
         self.setParent(parent)
-
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
-    def plot(self, data):
-        self.axes.plot(data, 'r.')
-        self.axes.set_title('PyQt Matplotlib Example')
-        self.draw()
+    def imshow(self,data, xmin, xmax, ymin, ymax):
+        self.fig.clear()
+        self.axes = self.fig.add_subplot(111)
+        self.axes.set_title('Area Heatmap Scan')
+        im = self.axes.imshow(data, cmap=plt.get_cmap('hot'), interpolation = 'none', extent=[xmin, xmax, ymin, ymax], origin='lower', vmin=0)
+        colorbar = self.fig.colorbar(im)
+
 
 class WidgetPlot(QWidget):
     def __init__(self, *args, **kwargs):
@@ -311,7 +377,8 @@ class WidgetPlot(QWidget):
         self.layout().addWidget(self.toolbar)
         self.layout().addWidget(self.canvas)
 
-    def plot(self, data):
-        self.canvas.axes.clear()
-        self.canvas.plot(data)
+    def plot(self, data, xmin, xmax, ymin, ymax):
+        self.canvas.imshow(data, xmin, xmax, ymin, ymax)
+        self.canvas.draw()
+
 # MirrorGui()
