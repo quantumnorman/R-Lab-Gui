@@ -82,6 +82,7 @@ class MirrorControlbtns(QWidget):
         ylayout = self.yscansettings()
         llayout = self.lambdascansettings()
         runbtn = self.runscan()
+        stopbtn = self.stopscan()
 
         mplplt = WidgetPlot()
         self.plot = mplplt
@@ -89,7 +90,8 @@ class MirrorControlbtns(QWidget):
         grid.addWidget(xlayout,0,0, 1, 6)
         grid.addWidget(ylayout, 1,0, 1, 6)
         grid.addWidget(llayout, 2,0, 1, 6)
-        grid.addWidget(runbtn,3,5, 1, 1)
+        grid.addWidget(runbtn,3,4, 1, 1)
+        grid.addWidget(stopbtn,3,5,1,1)
 
         gridbox = QGroupBox()
         gridbox.setLayout(grid)
@@ -175,8 +177,12 @@ class MirrorControlbtns(QWidget):
     def runscan(self):
         runbtn = QPushButton('Run Scan')
         runbtn.clicked.connect(self.on_click_runscan)
-
         return runbtn
+
+    def stopscan(self):
+        stopbtn = QPushButton('Stop Scan')
+        stopbtn.clicked.connect(self.on_click_stopscan)
+        return stopbtn
 
     def movebuttons(self):
         self.xmovetxt = QLineEdit()
@@ -200,12 +206,12 @@ class MirrorControlbtns(QWidget):
         self.deltaybox.setText('10')
         self.deltaxbox.setText('10')
         self.deltatbox.setText('0.1')
-        self.xminbox.setText('300')
-        self.xmaxbox.setText('350')
-        self.ymaxbox.setText('350')
-        self.yminbox.setText('300')
-        self.lambdaminbox.setText('1305')
-        self.lambdamaxbox.setText('1295')
+        self.xminbox.setText('316')
+        self.xmaxbox.setText('708')
+        self.ymaxbox.setText('820')
+        self.yminbox.setText('180')
+        self.lambdaminbox.setText('1050')
+        self.lambdamaxbox.setText('1150')
 
         return movebox
     #todo: add 'move by'
@@ -260,68 +266,76 @@ class MirrorControlbtns(QWidget):
 
             wavelength = self.find_wavelength()
 
-            roilow = bisect_left(wavelength, lmin)
-            roihigh = bisect_left(wavelength, lmax)
-            for i in range(ysteps):
-                # move to y
-                ytaskwrite.write(yvolt)
-                # print('yvolt=',yvolt)
-                xvolt = (xmin - xcenterpoint) * voltcalib
+            roihigh = int(bisect_left(wavelength, lmin))
+            roilow = int(bisect_left(wavelength, lmax))
+            self.set = 1
+            while self.set==1: #TODO: get interruption working
+                for i in range(ysteps):
+                    # move to y
+                    ytaskwrite.write(yvolt)
+                    # print('yvolt=',yvolt)
+                    xvolt = (xmin - xcenterpoint) * voltcalib
 
-                for j in range(xsteps):
-                    # move to x and acquire
-                    xtaskwrite.write(xvolt)
-                    # print('xvolt=',xvolt)
+                    for j in range(xsteps):
+                        # move to x and acquire
+                        xtaskwrite.write(xvolt)
+                        # print('xvolt=',xvolt)
 
-                    (ret) = cam.PrepareAcquisition()
-                    # Perform Acquisition
-                    (ret) = cam.StartAcquisition()
-                    print('starting')
-                    (ret) = cam.WaitForAcquisition()
-                    (ret, fullFrameBuffer) = cam.GetMostRecentImage(imageSize)
-                    data = fullFrameBuffer
-                    data = list(data)
+                        (ret) = cam.PrepareAcquisition()
+                        # Perform Acquisition
+                        (ret) = cam.StartAcquisition()
+                        print('starting')
+                        (ret) = cam.WaitForAcquisition()
+                        (ret, fullFrameBuffer) = cam.GetMostRecentImage(imageSize)
+                        data = fullFrameBuffer
+                        data = list(data)
+                        print(data)
+                        print('roilow=',roilow)
+                        print('rohigh=',roihigh)
 
-                    # print('roilow=',roilow)
-                    # print('rohigh=',roihigh)
+                        data = sum(data[roilow:roihigh])
+                        print(data)
+                        self.dataarray[i][j] = data
+                        # self.dataarray[i][j] = i+j
+                        time.sleep(0.05)
+                        xvolt = xvolt+delx*voltcalib
+                        self.plot.plot(self.dataarray, xmin, xmax, ymin, ymax)
+                        QApplication.processEvents()
+                        # print("Step", j)
+                        # print(data)
+                        # print(self.dataarray)
 
-                    data = sum(data[roilow:roihigh])
-                    self.dataarray[i][j] = data
-                    # self.dataarray[i][j] = i+j
-                    time.sleep(0.05)
-                    xvolt = xvolt+delx*voltcalib
-                    self.plot.plot(self.dataarray, xmin, xmax, ymin, ymax)
-                    QApplication.processEvents()
-                    print("Step", j)
-
-                yvolt=yvolt+dely*voltcalib
-            (ret) = cam.ShutDown()
-            print("Shutdown returned", ret)
-            print('Finished')
+                    yvolt=yvolt+dely*voltcalib
+                (ret) = cam.ShutDown()
+                print("Shutdown returned", ret)
+                print('Finished')
         else:
             print("Cannot continue, could not initialise camera")
 
-        ytaskwrite(0)
-        xtaskwrite(0)
+        ytaskwrite.write(0)
+        xtaskwrite.write(0)
     @pyqtSlot()
 
     def on_click_movex(self):
         xmove = float(self.xmovetxt.text())
         xvolt = xmove * voltcalib
-        xtaskwrite(xvolt)
+        xtaskwrite.write(xvolt)
         print('Move to x')
         #todo add functionality
 
     def on_click_movey(self):
         ymove = self.ymovetxt.text()
         yvolt = ymove * voltcalib
-        ytaskwrite(yvolt)
+        ytaskwrite.write(yvolt)
         print('Move to y')
         #todo: add functionality
 
     def on_click_runscan(self):
         xmin, xmax, delx, ymin, ymax, dely, lmin, lmax, exptime, xsteps, ysteps =self.readboxes()
         self.scan(xmin, xmax, delx, ymin, ymax, dely, lmin, lmax, exptime, xsteps, ysteps)
+
+    def on_click_stopscan(self):
+        self.set = 0
 
     def find_wavelength(self):
         ret, self.waveset = sham.ShamrockGetWavelength(0)
@@ -364,7 +378,7 @@ class PlotCanvas(FigureCanvas):
         self.fig.clear()
         self.axes = self.fig.add_subplot(111)
         self.axes.set_title('Area Heatmap Scan')
-        im = self.axes.imshow(data, cmap=plt.get_cmap('hot'), interpolation = 'none', extent=[xmin, xmax, ymin, ymax], origin='lower', vmin=0)
+        im = self.axes.imshow(data, cmap=plt.get_cmap('hot'), interpolation = 'none', extent=[xmin, xmax, ymin, ymax], origin='lower')
         colorbar = self.fig.colorbar(im)
 
 
