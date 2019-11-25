@@ -75,7 +75,7 @@ class Datacontrol(QWidget):
 
         #initial values so as not to break the code before we even start
         self.data = None
-        self.bkgnd = None
+        self.bkgnd = [0]*512
         self.exposuretime = None
         # self.getwavel()
 
@@ -207,7 +207,7 @@ class Datacontrol(QWidget):
     #layout of fitting panel
     def fitting(self):
         fitting = QPushButton('Try Fit', self)
-        fitting.clicked.connect(self.on_click_fitfunc)
+        # fitting.clicked.connect(self.on_click_fitfunc)
 
         self.lorbtn = QRadioButton('Lorentzian')
         self.gaubtn = QRadioButton('Gaussian')
@@ -408,8 +408,12 @@ class Datacontrol(QWidget):
         self.wavelength = self.getwavel()
 
     def on_thread_done(self, data):
-        self.plot.plot(self.wavelength, data)
-        self.data = data #sets data to a global variable so we can call it in other functions
+        self.data = np.array(list(data)) #sets data to a global variable so we can call it in other functions
+        if self.usebkgrnd.isChecked():
+            data = self.data-self.bkgnd #subtracts the background so we plot the data without the background
+        if self.nousebkgrnd.isChecked():
+            data = self.data
+        self.plot.plot(self.wavelength, data) #uses the QWidget class for plotting
 
     # functions for continuous buttons
     def on_click_continuous(self):
@@ -424,7 +428,8 @@ class Datacontrol(QWidget):
 
     #functions for background buttons
     def on_thread_done_bkgnd(self, data):
-        self.bkgnd = data
+        self.bkgnd = list(data)
+        self.bkgnd = np.array(self.bkgnd)
 
     def on_click_takebkgrnd(self):
         textboxvalue = float(self.bkgrndexptext.text())
@@ -441,6 +446,7 @@ class Datacontrol(QWidget):
         file = open(self.bkgrndatafilename, 'w', newline='')
         tsv_writer = csv.writer(file, delimiter='\t')
         tsv_writer.writerow([now.strftime("%Y-%m-%d %H:%M")])
+        tsv_writer.writerow(['Background File'])
         tsv_writer.writerow([])
         if caps.ulCameraType == 14:
             tsv_writer.writerow(['Camera Type:', 'InGaAs'])
@@ -469,7 +475,7 @@ class Datacontrol(QWidget):
         self.bkgrndatafilename = str(self.bkgrndatafilename)
         print(self.bkgrndatafilename)
         if not self.bkgrndatafilename: return
-        self.wavelength, self.data = np.loadtxt(self.bkgrndatafilename, usecols=(0, 1), skiprows=13, unpack=True)
+        self.wavelength, self.data = np.loadtxt(self.bkgrndatafilename, usecols=(0, 1), skiprows=15, unpack=True)
         return self.wavelength, self.bkgnd
 
     ##########Save/Load##########
@@ -489,7 +495,7 @@ class Datacontrol(QWidget):
         fileName = str(fileName)
         print(fileName)
         if not fileName: return
-        self.wavelength, self.data = np.loadtxt(fileName, usecols=(0, 1), skiprows=13, unpack=True)
+        self.wavelength, self.data = np.loadtxt(fileName, usecols=(0, 1), skiprows=15, unpack=True)
         return self.wavelength, self.data
 
     def on_click_loaddata(self):
@@ -512,6 +518,7 @@ class Datacontrol(QWidget):
         tsv_writer = csv.writer(file, delimiter='\t') #defining the filetype as tab-separated
         tsv_writer.writerow([now.strftime("%Y-%m-%d %H:%M")]) #includes date and time
         tsv_writer.writerow([]) #blank row
+        tsv_writer.writerow(['Background File Name:', self.bkgrndatafilename])
 
         #writes camera type and grating info
         if caps.ulCameraType == 14:
@@ -527,51 +534,51 @@ class Datacontrol(QWidget):
         tsv_writer.writerow([])
         tsv_writer.writerow(['Exposure time:', self.exposuretime])
         tsv_writer.writerow([])
-        tsv_writer.writerow(['Point', 'Counts']) #writes the data
+        tsv_writer.writerow(['Wavelength', 'Counts']) #writes the data
         datalist = list(self.data)
         for i in range(len(datalist)):
             tsv_writer.writerow([i, self.wavelength[i], datalist[i]])
         file.close()
 
     #Fitting functions
-    def on_click_fitfunc(self):
-        #reading in values from texts
-        amp = float(self.ampfit.text())
-        center = float(self.centerfit.text())
-        sigma = float(self.centerfit.text())
-
-        #reading in data and wavelength values
-        data = self.data
-        x = self.wavelength
-
-        #selecting which kind of fitting
-        if self.lorbtn.isChecked():
-            func = self.lor
-
-        if self.gaubtn.isChecked():
-            func = self.gauss
-
-        #using the scipy fitting functions
-        popt, pcov = optimize.curve_fit(func, x, data, p0=[amp, center, sigma])
-
-        #read out to the fit values
-        self.ampfitval = popt[0]
-        self.centerfitval = popt[1]
-        self.sigmfitval = popt[2]
-        self.perr = np.sqrt(np.diag(pcov))
-
-        #plot the fit over the data
-        fit = func(x, popt[0], popt[1], popt[2])
-        self.plot.plotfit(x, fit)
-
-        #update the labels
-        self.retstdeval.setText(str(self.perr))
-        self.retsigval.setText(str(self.sigmfitval))
-        self.retcenval.setText(str(self.centerfitval))
-        self.retampval.setText(str(self.ampfitval))
-        # TODO: reformat value box
-
-        print(popt)
+    # def on_click_fitfunc(self):
+    #     #reading in values from texts
+    #     amp = float(self.ampfit.text())
+    #     center = float(self.centerfit.text())
+    #     sigma = float(self.centerfit.text())
+    #
+    #     #reading in data and wavelength values
+    #     data = self.data
+    #     x = self.wavelength
+    #
+    #     #selecting which kind of fitting
+    #     if self.lorbtn.isChecked():
+    #         func = self.lor
+    #
+    #     if self.gaubtn.isChecked():
+    #         func = self.gauss
+    #
+    #     #using the scipy fitting functions
+    #     popt, pcov = optimize.curve_fit(func, x, data, p0=[amp, center, sigma])
+    #
+    #     #read out to the fit values
+    #     self.ampfitval = popt[0]
+    #     self.centerfitval = popt[1]
+    #     self.sigmfitval = popt[2]
+    #     self.perr = np.sqrt(np.diag(pcov))
+    #
+    #     #plot the fit over the data
+    #     fit = func(x, popt[0], popt[1], popt[2])
+    #     self.plot.plotfit(x, fit)
+    #
+    #     #update the labels
+    #     self.retstdeval.setText(str(self.perr))
+    #     self.retsigval.setText(str(self.sigmfitval))
+    #     self.retcenval.setText(str(self.centerfitval))
+    #     self.retampval.setText(str(self.ampfitval))
+    #     # TODO: reformat value box
+    #
+    #     print(popt)
 
 
 # kinetic scans click

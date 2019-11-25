@@ -48,19 +48,28 @@ class SpecControlbtns(QWidget):
         if gratingset ==3:
             self.gratinglbl.setText('1300')
 
-        self.infliplbl = QLabel()
-        ret, inflipset = sham.ShamrockGetFlipperMirrorPosition(0,1)
-        if inflipset ==0:
-            self.infliplbl.setText('Input Flipper Straight')
-        if inflipset==1:
-            self.infliplbl.setText('Input Flipper Side')
-
         self.outfliplbl = QLabel()
-        ret, outflipset = sham.ShamrockGetFlipperMirrorPosition(0,2)
+        ret, outflipset = sham.ShamrockGetFlipperMirror(0,2)
+        print(outflipset)
+        print(ret)
         if outflipset ==0:
             self.outfliplbl.setText('Output Flipper Straight')
         if outflipset ==1:
             self.outfliplbl.setText('Output Flipper Side')
+
+        self.infliplbl = QLabel()
+        ret, inflipset = sham.ShamrockGetFlipperMirror(0,1)
+        print(inflipset)
+        print(ret)
+        if inflipset==0:
+            self.infliplbl.setText('Input Flipper Straight')
+        if inflipset==1:
+            self.infliplbl.setText("Input Flipper Side")
+
+        self.wavelbl = QLabel()
+        ret, waveset = sham.ShamrockGetWavelength(0)
+        waveset = str(waveset)
+        self.wavelbl.setText(waveset)
 
         self.specstatlbl = QLabel('Spectrometer Initialized')
         self.btnslayout()
@@ -211,7 +220,6 @@ class SpecControlbtns(QWidget):
         wavebox = QGroupBox()
         wavebox.setLayout(wavelayout)
         wavebox.setTitle('Wavelength')
-        self.wavelbl = QLabel()
         wavelayout.addWidget(self.wavelbl, 0,0)
 
 

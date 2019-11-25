@@ -13,7 +13,7 @@ import dataacgui
 from pyAndorShamrock import Shamrock
 sham = Shamrock.Shamrock()
 inifile = 'C:\\Users\\R-Lab\\Desktop\\detector.ini'
-sham.ShamrockInitialize(inifile)
+# sham.ShamrockInitialize(inifile)
 
 ytaskwrite = nidaqmx.Task()
 ytaskwrite.ao_channels.add_ao_voltage_chan('Dev1/ao0')
@@ -269,46 +269,51 @@ class MirrorControlbtns(QWidget):
             roihigh = int(bisect_left(wavelength, lmin))
             roilow = int(bisect_left(wavelength, lmax))
             self.set = 1
-            while self.set==1: #TODO: get interruption working
-                for i in range(ysteps):
-                    # move to y
-                    ytaskwrite.write(yvolt)
-                    # print('yvolt=',yvolt)
-                    xvolt = (xmin - xcenterpoint) * voltcalib
+            for i in range(ysteps):
+                # move to y
+                ytaskwrite.write(yvolt)
+                # print('yvolt=',yvolt)
+                xvolt = (xmin - xcenterpoint) * voltcalib
 
-                    for j in range(xsteps):
-                        # move to x and acquire
-                        xtaskwrite.write(xvolt)
-                        # print('xvolt=',xvolt)
+                for j in range(xsteps):
+                    # move to x and acquire
+                    xtaskwrite.write(xvolt)
+                    # print('xvolt=',xvolt)
 
-                        (ret) = cam.PrepareAcquisition()
-                        # Perform Acquisition
-                        (ret) = cam.StartAcquisition()
-                        print('starting')
-                        (ret) = cam.WaitForAcquisition()
-                        (ret, fullFrameBuffer) = cam.GetMostRecentImage(imageSize)
-                        data = fullFrameBuffer
-                        data = list(data)
-                        print(data)
-                        print('roilow=',roilow)
-                        print('rohigh=',roihigh)
+                    (ret) = cam.PrepareAcquisition()
+                    # Perform Acquisition
+                    (ret) = cam.StartAcquisition()
+                    # print('starting')
+                    (ret) = cam.WaitForAcquisition()
+                    (ret, fullFrameBuffer) = cam.GetMostRecentImage(imageSize)
+                    data = fullFrameBuffer
+                    data = list(data)
+                    # print(data)
+                    # print('roilow=',roilow)
+                    # print('rohigh=',roihigh)
 
-                        data = sum(data[roilow:roihigh])
-                        print(data)
-                        self.dataarray[i][j] = data
-                        # self.dataarray[i][j] = i+j
-                        time.sleep(0.05)
-                        xvolt = xvolt+delx*voltcalib
-                        self.plot.plot(self.dataarray, xmin, xmax, ymin, ymax)
-                        QApplication.processEvents()
-                        # print("Step", j)
-                        # print(data)
-                        # print(self.dataarray)
+                    data = sum(data[roilow:roihigh])
+                    # print(data)
+                    self.dataarray[i][j] = data
+                    # self.dataarray[i][j] = i+j
+                    time.sleep(0.05)
+                    xvolt = xvolt+delx*voltcalib
+                    self.plot.plot(self.dataarray, xmin, xmax, ymin, ymax)
+                    QApplication.processEvents()
+                    print(self.set)
+                    if self.set !=1:
+                        break
+                    # print("Step", j)
+                    # print(data)
+                    # print(self.dataarray)
+                if self.set != 1:
+                    break
 
-                    yvolt=yvolt+dely*voltcalib
-                (ret) = cam.ShutDown()
-                print("Shutdown returned", ret)
-                print('Finished')
+                yvolt=yvolt+dely*voltcalib
+            (ret) = cam.ShutDown()
+
+            print("Shutdown returned", ret)
+            print('Finished')
         else:
             print("Cannot continue, could not initialise camera")
 
