@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QAc
 import matplotlib as plt
 from atmcd import *
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import pyqtSlot, QTimer
+from PyQt5.QtCore import pyqtSlot, QThread, pyqtSignal, QTimer
 
 cam = atmcd()
 
@@ -24,7 +24,7 @@ class InGaAsGui(QMainWindow):
     def initingaasUI(self):
         self.setWindowTitle(self.title)
         # self.setGeometry(self.left, self.top, self.width, self.height)
-
+        # QTimer.singleShot(5000, cameracontrols.updatetemplbl)
         self.setCentralWidget(cameracontrols())
         # self.show()
 
@@ -34,6 +34,8 @@ class cameracontrols(QWidget):
         grid = QGridLayout()
         grid.addWidget(self.cameracontrolbtns(), 0,0)
         self.setLayout(grid)
+        # self.temp = cam.GetTemperature()
+        # self.updatetemplbl()
 
     def cameracontrolbtns(self):
         labels = self.labels()
@@ -42,7 +44,6 @@ class cameracontrols(QWidget):
         layout = QGridLayout()
         layout.addWidget(settemp, 0, 0)
         layout.addWidget(labels, 0, 1)
-
         groupbox = QGroupBox()
         groupbox.setLayout(layout)
 
@@ -73,37 +74,48 @@ class cameracontrols(QWidget):
         return groupbox
 
     def labels(self):
+        self.settemplbl = QLabel()
+        settemp = QLabel('Temperature Set point:')
         self.templbl = QLabel()
-        temp = QLabel('Temperature:')
+        temp = QLabel('Current Temperature')
+        # self.templbl.setText(str(self.temp))
         cmap = plt.colors.Colormap('Jet')
-        QTimer.singleShot(10000, lambda: self.updatetemplbl()) #updates temperature every 10 seconds
         coolstatus = QLabel('Cooler Status')
         self.coolerlbl = QLabel()
         layout = QGridLayout()
         groupbox = QGroupBox()
-        layout.addWidget(temp, 1,0)
-        layout.addWidget(self.templbl, 1, 1)
+        layout.addWidget(settemp, 1,0)
+        layout.addWidget(self.settemplbl, 1, 1)
         layout.addWidget(self.coolerlbl, 0, 1)
         layout.addWidget(coolstatus, 0, 0)
+        layout.addWidget(self.templbl, 2,1)
+        layout.addWidget(temp, 2,0)
+
         groupbox.setLayout(layout)
         return groupbox
 
     def updatetemplbl(self):
-        ret, self.temp = cam.GetTemperature()
-        if ret==20075:
-            self.templbl.setText('Camera not initialized')
-        else:
-            self.temp = str(self.temp)
-            self.templbl.setText(self.temp)
+        thread = Tempthread()
+        thread.start()
+        thread.signal.connect(self.on_thread_done)
+
 
     @pyqtSlot()
+    def on_thread_done(self, temp):
+        self.templbl.setText(temp)
+
+
     def on_click_settemp(self): #defines the function associated with the set temperature button
-        temp = int(self.settempbox.text())
+        settemp = int(self.settempbox.text())
         ret = cam.CoolerON()
+        ret, temp = cam.GetTemperature()
+
         if ret ==20075:
-            self.templbl.setText('Camera not initialized')
+            self.settemplbl.setText('Camera not initialized')
+            self.templbl.setText(str(temp))
         else:
             cam.SetTemperature(temp)
+            self.settemplbl.setText(str(settemp))
             self.templbl.setText(str(temp))
             print(ret)
 
@@ -111,9 +123,32 @@ class cameracontrols(QWidget):
         ret = cam.CoolerON()
         if ret == 20075:
             self.coolerlbl.setText('Camera not initialized')
+
     def on_click_cooleroff(self):
         ret = cam.CoolerOFF()
         if ret == 20002:
             self.coolerlbl.setText('Cooler Off')
 
 # InGaAsGui()
+
+class Tempthread(QThread):
+    signal = pyqtSignal('PyQt_PyObject')
+
+
+    def __init__(self):
+        QThread.__init__(self)
+
+        self.condition = 1
+
+        def run(self):
+            ret, temp = cam.GetTemperature()
+            if ret == 20075:
+                templblsettext = 'Camera Not Initialized'
+
+            if ret ==20002:
+                temp = str(temp)
+                self.signal.emit(temp)
+                time.sleep(5)
+
+    def halt(self):
+        self.condition = 0

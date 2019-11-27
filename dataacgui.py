@@ -602,7 +602,7 @@ class PlotCanvas(FigureCanvas): #this creates a matplotlib canvas and defines so
         FigureCanvas.updateGeometry(self)
 
     def plot(self, x, data):
-        self.axes.plot(x, data, 'r.')
+        self.axes.plot(x, data, 'b.')
         self.axes.set_title('Title')
         self.draw()
 

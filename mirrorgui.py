@@ -323,7 +323,9 @@ class MirrorControlbtns(QWidget):
 
     def on_click_movex(self):
         xmove = float(self.xmovetxt.text())
+        print(xmove)
         xvolt = xmove * voltcalib
+        print(xvolt)
         xtaskwrite.write(xvolt)
         print('Move to x')
         #todo add functionality

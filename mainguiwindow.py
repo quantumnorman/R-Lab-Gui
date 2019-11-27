@@ -7,7 +7,8 @@ from shamrockgui import *
 from dataacgui import *
 from ingaasgui import *
 from mirrorgui import *
-
+from atmcd import *
+cam = atmcd()
 
 
 
@@ -33,7 +34,8 @@ class MainGui(QMainWindow):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
         self.setCentralWidget(Spectbtns())
-
+        cam.Initialize("/usr/local/etc/andor")
+        cam.CoolerON()
 
         self.show()
 
