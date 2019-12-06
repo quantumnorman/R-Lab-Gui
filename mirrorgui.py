@@ -1,6 +1,6 @@
 import sys
 from bisect import bisect_left
-from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QAction, QTabWidget, QVBoxLayout, QGroupBox, QHBoxLayout, QGridLayout, QLabel, QLineEdit, QSizePolicy
+from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QAction, QTabWidget, QVBoxLayout, QGroupBox, QHBoxLayout, QGridLayout, QLabel, QLineEdit, QSizePolicy, QComboBox
 import numpy as np
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
@@ -83,6 +83,7 @@ class MirrorControlbtns(QWidget):
         llayout = self.lambdascansettings()
         runbtn = self.runscan()
         stopbtn = self.stopscan()
+        color = self.colorsetting()
 
         mplplt = WidgetPlot()
         self.plot = mplplt
@@ -92,6 +93,7 @@ class MirrorControlbtns(QWidget):
         grid.addWidget(llayout, 2,0, 1, 6)
         grid.addWidget(runbtn,3,4, 1, 1)
         grid.addWidget(stopbtn,3,5,1,1)
+        grid.addWidget(color, 4,5,1,1)
 
         gridbox = QGroupBox()
         gridbox.setLayout(grid)
@@ -103,6 +105,11 @@ class MirrorControlbtns(QWidget):
         layout.addWidget(gridbox)
         layout.addWidget(mplplt)
         self.setLayout(layout)
+
+        ##setting colormap names##
+        self.heat = plt.get_cmap('hot')
+        self.rainbow = plt.get_cmap('rainbow')
+        self.gray = plt.get_cmap('gray')
 
     def xscansettings(self):
         self.xminbox = QLineEdit()
@@ -161,18 +168,24 @@ class MirrorControlbtns(QWidget):
 
         lambdalay = QGridLayout()
 
-        lambdalay.addWidget(self.lminlabel, 2,0)
-        lambdalay.addWidget(self.lambdamaxbox, 2,1)
-        lambdalay.addWidget(self.lmaxlabel, 2, 2)
-        lambdalay.addWidget(self.lambdaminbox,2,3)
-        lambdalay.addWidget(self.exposuretime, 2, 4)
-        lambdalay.addWidget(self.deltatbox, 2,5)
+        lambdalay.addWidget(self.lminlabel, 0,0)
+        lambdalay.addWidget(self.lambdamaxbox, 0,1)
+        lambdalay.addWidget(self.lmaxlabel, 0, 2)
+        lambdalay.addWidget(self.lambdaminbox,0,3)
+        lambdalay.addWidget(self.exposuretime, 0, 4)
+        lambdalay.addWidget(self.deltatbox, 0,5)
 
 
         lambdabox = QGroupBox()
         lambdabox.setLayout(lambdalay)
 
         return lambdabox
+
+    def scansettings(self):
+        vminbox = QLineEdit()
+        vmaxbox = QLineEdit()
+        color = self.colorsetting()
+
 
     def runscan(self):
         runbtn = QPushButton('Run Scan')
@@ -216,6 +229,14 @@ class MirrorControlbtns(QWidget):
         return movebox
     #todo: add 'move by'
 
+    def colorsetting(self):
+        combo = QComboBox()
+        combo.addItem('Heat')
+        combo.addItem('Rainbow')
+        combo.addItem('Grayscale')
+        combo.activated[str].connect(lambda x: self.setcolor(x))
+        return combo
+
 
     def readboxes(self):
         xmin = float(self.xminbox.text())
@@ -234,8 +255,10 @@ class MirrorControlbtns(QWidget):
         xsteps = np.rint((xmax-xmin)/delx)
         ysteps = np.rint((ymax-ymin)/dely)
 
+        vmin = self.vminbox.text()
+        vmax = self.vmaxbox.text()
 
-        return xmin, xmax, delx, ymin, ymax, dely, lmin, lmax, exptime, xsteps, ysteps
+        return xmin, xmax, delx, ymin, ymax, dely, lmin, lmax, exptime, xsteps, ysteps, vmin, vmax
 
     def scan(self, xmin, xmax, delx, ymin, ymax, dely, lmin, lmax, exptime, xsteps, ysteps):
         xsteps = round((xmax-xmin)/delx)
@@ -298,7 +321,7 @@ class MirrorControlbtns(QWidget):
                     # self.dataarray[i][j] = i+j
                     time.sleep(0.05)
                     xvolt = xvolt+delx*voltcalib
-                    self.plot.plot(self.dataarray, xmin, xmax, ymin, ymax)
+                    self.plot.plot(self.dataarray, xmin, xmax, ymin, ymax, self.colormap)
                     QApplication.processEvents()
                     print(self.set)
                     if self.set !=1:
@@ -338,8 +361,8 @@ class MirrorControlbtns(QWidget):
         #todo: add functionality
 
     def on_click_runscan(self):
-        xmin, xmax, delx, ymin, ymax, dely, lmin, lmax, exptime, xsteps, ysteps =self.readboxes()
-        self.scan(xmin, xmax, delx, ymin, ymax, dely, lmin, lmax, exptime, xsteps, ysteps)
+        xmin, xmax, delx, ymin, ymax, dely, lmin, lmax, exptime, xsteps, ysteps, vmin, vmax =self.readboxes()
+        self.scan(xmin, xmax, delx, ymin, ymax, dely, lmin, lmax, exptime, xsteps, ysteps, vmin, vmax)
 
     def on_click_stopscan(self):
         self.set = 0
@@ -381,11 +404,11 @@ class PlotCanvas(FigureCanvas):
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
-    def imshow(self,data, xmin, xmax, ymin, ymax):
+    def imshow(self,data, xmin, xmax, ymin, ymax, colormap):
         self.fig.clear()
         self.axes = self.fig.add_subplot(111)
-        self.axes.set_title('Area Heatmap Scan')
-        im = self.axes.imshow(data, cmap=plt.get_cmap('hot'), interpolation = 'none', extent=[xmin, xmax, ymin, ymax], origin='lower')
+        self.axes.set_title('Photoluminescence Scan')
+        im = self.axes.imshow(data, cmap=colormap, interpolation = 'none', extent=[xmin, xmax, ymin, ymax], origin='lower')
         colorbar = self.fig.colorbar(im)
 
 
@@ -398,8 +421,8 @@ class WidgetPlot(QWidget):
         self.layout().addWidget(self.toolbar)
         self.layout().addWidget(self.canvas)
 
-    def plot(self, data, xmin, xmax, ymin, ymax):
-        self.canvas.imshow(data, xmin, xmax, ymin, ymax)
+    def plot(self, data, xmin, xmax, ymin, ymax, colormap):
+        self.canvas.imshow(data, xmin, xmax, ymin, ymax, colormap)
         self.canvas.draw()
 
 # MirrorGui()

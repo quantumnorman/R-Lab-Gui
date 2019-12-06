@@ -42,7 +42,7 @@ class MainGui(QMainWindow):
 
 class Spectbtns(QWidget):
     def __init__(self):
-        super().__init__()
+        super(Spectbtns, self).__init__()
         self.left = 12.5
         self.top = 12.5
         self.width = 275

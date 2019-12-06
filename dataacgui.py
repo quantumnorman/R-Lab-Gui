@@ -13,12 +13,9 @@ import datetime
 from scipy import optimize
 from pyAndorShamrock import Shamrock
 
-sham = Shamrock.Shamrock()
-
+# sham = Shamrock.Shamrock()
 now = datetime.datetime.now()
-
-cam = atmcd()
-
+# cam = atmcd()
 
 # DataacGui sets up the window and calls the widget Datacontrol
 class DataacGui(QMainWindow):
@@ -398,6 +395,7 @@ class Datacontrol(QWidget):
         self.thread = SingleAcquisitionThread(time) #connects to the thread
         self.thread.start()
         self.thread.signal.connect(self.on_thread_done)
+        self.exposuretime = time
         self.wavelength = self.getwavel()
 
     def on_click_inputtime(self):
@@ -406,6 +404,8 @@ class Datacontrol(QWidget):
         self.thread.start()
         self.thread.signal.connect(self.on_thread_done)
         self.wavelength = self.getwavel()
+        self.exposuretime = textboxvalue
+
 
     def on_thread_done(self, data):
         self.data = np.array(list(data)) #sets data to a global variable so we can call it in other functions
@@ -539,6 +539,15 @@ class Datacontrol(QWidget):
         for i in range(len(datalist)):
             tsv_writer.writerow([i, self.wavelength[i], datalist[i]])
         file.close()
+
+    def setcolor(self, text):
+        print(text)
+        if text == 'Heat':
+            self.colormap = self.heat
+        if text == 'Grayscale':
+            self.colormap = self.gray
+        if text == 'Rainbow':
+            self.colormap = self.rainbow
 
     #Fitting functions
     # def on_click_fitfunc(self):
@@ -721,5 +730,3 @@ class ContinuousAcquisitionThread(QThread):
         self.condition = 0
 
 # DataacGui()
-
-# TODO implement actually using background subtraction, figure out how saving the files should go
