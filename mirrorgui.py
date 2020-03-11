@@ -3,7 +3,7 @@ from bisect import bisect_left
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QAction, QTabWidget, QVBoxLayout, QGroupBox, QHBoxLayout, QGridLayout, QLabel, QLineEdit, QSizePolicy, QComboBox
 import numpy as np
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, QSize
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
@@ -20,10 +20,6 @@ ytaskwrite.ao_channels.add_ao_voltage_chan('Dev1/ao0')
 
 xtaskwrite = nidaqmx.Task()
 xtaskwrite.ao_channels.add_ao_voltage_chan('Dev1/ao1')
-
-xtaskread = nidaqmx.Task()
-xtaskread.ai_channels.add_ai_voltage_chan('Dev1/ai5')
-#TODO: check input paths
 
 
 umwidth = 10.
@@ -83,10 +79,11 @@ class MirrorControlbtns(QWidget):
         llayout = self.lambdascansettings()
         runbtn = self.runscan()
         stopbtn = self.stopscan()
-        color = self.colorsetting()
+        color = self.scansettings()
 
         mplplt = WidgetPlot()
         self.plot = mplplt
+        self.plot.setMinimumSize(QSize(600,600))
 
         grid.addWidget(xlayout,0,0, 1, 6)
         grid.addWidget(ylayout, 1,0, 1, 6)
@@ -110,6 +107,8 @@ class MirrorControlbtns(QWidget):
         self.heat = plt.get_cmap('hot')
         self.rainbow = plt.get_cmap('rainbow')
         self.gray = plt.get_cmap('gray')
+        self.colormap = self.heat
+
 
     def xscansettings(self):
         self.xminbox = QLineEdit()
@@ -182,10 +181,22 @@ class MirrorControlbtns(QWidget):
         return lambdabox
 
     def scansettings(self):
-        vminbox = QLineEdit()
-        vmaxbox = QLineEdit()
+        self.vminbox = QLineEdit()
+        self.vmaxbox = QLineEdit()
         color = self.colorsetting()
+        vminlbl = QLabel('Minimum Colorbar PL Scan')
+        vmaxlbl = QLabel('Maximum Colorbar PL Scan')
 
+        layout = QGridLayout()
+        layout.addWidget(vminlbl, 0, 0)
+        layout.addWidget(self.vminbox,0,1)
+        layout.addWidget(vmaxlbl, 1, 0)
+        layout.addWidget(self.vmaxbox, 1,1)
+        layout.addWidget(color, 2,1)
+
+        box = QGroupBox()
+        box.setLayout(layout)
+        return box
 
     def runscan(self):
         runbtn = QPushButton('Run Scan')
@@ -227,7 +238,6 @@ class MirrorControlbtns(QWidget):
         self.lambdamaxbox.setText('1150')
 
         return movebox
-    #todo: add 'move by'
 
     def colorsetting(self):
         combo = QComboBox()
@@ -237,6 +247,13 @@ class MirrorControlbtns(QWidget):
         combo.activated[str].connect(lambda x: self.setcolor(x))
         return combo
 
+    def setcolor(self,text):
+        if text == 'Heat':
+            self.colormap = self.heat
+        if text == 'Grayscale':
+            self.colormap = self.gray
+        if text == 'Rainbow':
+            self.colormap = self.rainbow
 
     def readboxes(self):
         xmin = float(self.xminbox.text())
@@ -255,12 +272,18 @@ class MirrorControlbtns(QWidget):
         xsteps = np.rint((xmax-xmin)/delx)
         ysteps = np.rint((ymax-ymin)/dely)
 
-        vmin = self.vminbox.text()
-        vmax = self.vmaxbox.text()
+        if self.vmaxbox.text() == '':
+            vmax = None
+        else:
+            vmax = int(self.vmaxbox.text())
+        if self.vminbox.text() == '':
+            vmin = None
+        else:
+            vmin = int(self.vminbox.text())
 
         return xmin, xmax, delx, ymin, ymax, dely, lmin, lmax, exptime, xsteps, ysteps, vmin, vmax
 
-    def scan(self, xmin, xmax, delx, ymin, ymax, dely, lmin, lmax, exptime, xsteps, ysteps):
+    def scan(self, xmin, xmax, delx, ymin, ymax, dely, lmin, lmax, exptime, xsteps, ysteps, vmin, vmax):
         xsteps = round((xmax-xmin)/delx)
         ysteps = round((ymax-ymin)/dely)
 
@@ -351,14 +374,12 @@ class MirrorControlbtns(QWidget):
         print(xvolt)
         xtaskwrite.write(xvolt)
         print('Move to x')
-        #todo add functionality
 
     def on_click_movey(self):
         ymove = self.ymovetxt.text()
         yvolt = ymove * voltcalib
         ytaskwrite.write(yvolt)
         print('Move to y')
-        #todo: add functionality
 
     def on_click_runscan(self):
         xmin, xmax, delx, ymin, ymax, dely, lmin, lmax, exptime, xsteps, ysteps, vmin, vmax =self.readboxes()
@@ -422,7 +443,7 @@ class WidgetPlot(QWidget):
         self.layout().addWidget(self.canvas)
 
     def plot(self, data, xmin, xmax, ymin, ymax, colormap):
-        self.canvas.imshow(data, xmin, xmax, ymin, ymax, colormap)
+        self.canvas.imshow(data, xmin, xmax, ymin, ymax, colormap,)
         self.canvas.draw()
 
 # MirrorGui()

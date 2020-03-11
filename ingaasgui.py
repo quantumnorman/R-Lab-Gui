@@ -25,17 +25,17 @@ class InGaAsGui(QMainWindow):
         self.setWindowTitle(self.title)
         # self.setGeometry(self.left, self.top, self.width, self.height)
         # QTimer.singleShot(5000, cameracontrols.updatetemplbl)
-        self.setCentralWidget(cameracontrols())
+        self.setCentralWidget(Cameracontrols())
         # self.show()
 
-class cameracontrols(QWidget):
+class Cameracontrols(QWidget):
     def __init__(self):
-        super(cameracontrols, self).__init__()
+        super(Cameracontrols, self).__init__()
         grid = QGridLayout()
         grid.addWidget(self.cameracontrolbtns(), 0,0)
         self.setLayout(grid)
         # self.temp = cam.GetTemperature()
-        # self.updatetemplbl()
+        self.updatetemplbl()
 
     def cameracontrolbtns(self):
         labels = self.labels()
@@ -95,14 +95,15 @@ class cameracontrols(QWidget):
         return groupbox
 
     def updatetemplbl(self):
-        thread = Tempthread()
-        thread.start()
-        thread.signal.connect(self.on_thread_done)
+        self.thread = Tempthread()
+        self.thread.start()
+        self.thread.signal.connect(lambda x: self.on_thread_done(x))
 
 
     @pyqtSlot()
     def on_thread_done(self, temp):
         self.templbl.setText(temp)
+
 
 
     def on_click_settemp(self): #defines the function associated with the set temperature button
@@ -123,6 +124,8 @@ class cameracontrols(QWidget):
         ret = cam.CoolerON()
         if ret == 20075:
             self.coolerlbl.setText('Camera not initialized')
+        if ret== 20002:
+            self.coolerlbl.setText('Cooler On')
 
     def on_click_cooleroff(self):
         ret = cam.CoolerOFF()
@@ -140,15 +143,19 @@ class Tempthread(QThread):
 
         self.condition = 1
 
-        def run(self):
-            ret, temp = cam.GetTemperature()
-            if ret == 20075:
-                templblsettext = 'Camera Not Initialized'
+    def run(self):
+        print('temp')
+        ret, temp = cam.GetTemperature()
+        if ret == 20075:
+            templblsettext = 'Camera Not Initialized'
 
-            if ret ==20002:
-                temp = str(temp)
-                self.signal.emit(temp)
-                time.sleep(5)
+        while self.condition ==1:
+            ret, temp = cam.GetTemperature()
+            temp = str(temp)
+            self.signal.emit(temp)
+            print('temperature = ', temp, 'return', ret)
+            time.sleep(5)
+        print('temp', ret, temp)
 
     def halt(self):
         self.condition = 0

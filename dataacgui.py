@@ -8,14 +8,14 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import csv
 from atmcd import *
-from PyQt5.QtCore import pyqtSlot, QThread, pyqtSignal
+from PyQt5.QtCore import pyqtSlot, QThread, pyqtSignal, QSize
 import datetime
 from scipy import optimize
 from pyAndorShamrock import Shamrock
 
-# sham = Shamrock.Shamrock()
+sham = Shamrock.Shamrock()
 now = datetime.datetime.now()
-# cam = atmcd()
+cam = atmcd()
 
 # DataacGui sets up the window and calls the widget Datacontrol
 class DataacGui(QMainWindow):
@@ -59,6 +59,7 @@ class Datacontrol(QWidget):
         saveload = self.saveloadbtns() #the save/load data buttons
         # kinscans = self.kineticdatabtns()
         fit = self.fitting() #the fitting panel
+        self.plot.setMinimumSize(QSize(600, 600))
 
         #laying out the buttons and plot
         dataaclayout.addWidget(actimes, 0, 0)

@@ -52,6 +52,7 @@ class Dataplot(QWidget):
         continuous = self.continousbtns()
         mplplt = WidgetPlot()
         self.plot = mplplt
+        self.plot.setMinimumSize(600)
         saveload = self.saveloadbtns()
         # kinscans = self.kineticdatabtns()
         fit = self.fitting()

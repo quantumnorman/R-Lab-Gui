@@ -9,7 +9,7 @@ from pyAndorShamrock import Shamrock
 sham = Shamrock.Shamrock()
 inifile = 'C:\\Users\\R-Lab\\Desktop\\detector.ini'
 
-#This class sets up the window and framework for the spectrometer controls
+# This class sets up the window and framework for the spectrometer controls
 class SpectrometerGui(QMainWindow):
     # This and initspecui sets some default values to load in upon startup
     def __init__(self):
