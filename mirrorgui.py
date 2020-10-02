@@ -8,18 +8,18 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from atmcd import *
-import nidaqmx
+# import nidaqmx
 import dataacgui
 from pyAndorShamrock import Shamrock
-sham = Shamrock.Shamrock()
-inifile = 'C:\\Users\\R-Lab\\Desktop\\detector.ini'
+# sham = Shamrock.Shamrock()
+# inifile = 'C:\\Users\\R-Lab\\Desktop\\detector.ini'
 # sham.ShamrockInitialize(inifile)
 
-ytaskwrite = nidaqmx.Task()
-ytaskwrite.ao_channels.add_ao_voltage_chan('Dev1/ao0')
-
-xtaskwrite = nidaqmx.Task()
-xtaskwrite.ao_channels.add_ao_voltage_chan('Dev1/ao1')
+# ytaskwrite = nidaqmx.Task()
+# ytaskwrite.ao_channels.add_ao_voltage_chan('Dev1/ao0')
+#
+# xtaskwrite = nidaqmx.Task()
+# xtaskwrite.ao_channels.add_ao_voltage_chan('Dev1/ao1')
 
 
 umwidth = 10.
@@ -418,8 +418,6 @@ class PlotCanvas(FigureCanvas):
 
     def __init__(self, parent=None):
         self.fig = Figure()
-        self.axes = self.fig.add_subplot(111)
-        self.axes.set_title('Area Heatmap Scan')
         FigureCanvas.__init__(self, self.fig)
         self.setParent(parent)
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)

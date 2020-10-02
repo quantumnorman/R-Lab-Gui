@@ -616,11 +616,6 @@ class PlotCanvas(FigureCanvas): #this creates a matplotlib canvas and defines so
         self.axes.set_title('Title')
         self.draw()
 
-    def plotfit(self, x, fit): #this is here to make sure the plot doesn't clear when trying to plot a fitting function
-        # on top of the data
-        self.axes.plot(x, fit, 'bo')
-        self.draw()
-
 
 class WidgetPlot(QWidget): #this converts the matplotlib canvas into a qt5 widget so we can implement it in the qt
     # framework laid out above
@@ -637,9 +632,6 @@ class WidgetPlot(QWidget): #this converts the matplotlib canvas into a qt5 widge
         self.canvas.axes.clear() #it is important to clear out the plot first or everything just gets plotted on top of
         # each other and it becomes useless
         self.canvas.plot(x, data)
-
-    def plotfit(self, x, fit):
-        self.canvas.plotfit(x, fit)
 
 
 #this is where the threading happens (credit to Tristan Rasmussen for walking me through most of this)

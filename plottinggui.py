@@ -10,11 +10,10 @@ from PyQt5.QtCore import pyqtSlot
 import datetime
 from scipy import optimize
 from pyAndorShamrock import Shamrock
-sham = Shamrock.Shamrock()
+
 
 now = datetime.datetime.now()
 
-cam = atmcd()
 
 
 class PlotGui(QMainWindow):
