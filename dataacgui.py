@@ -13,9 +13,9 @@ import datetime
 from scipy import optimize
 from pyAndorShamrock import Shamrock
 
-sham = Shamrock.Shamrock()
-now = datetime.datetime.now()
-cam = atmcd()
+# sham = Shamrock.Shamrock()
+# now = datetime.datetime.now()
+# cam = atmcd()
 
 # DataacGui sets up the window and calls the widget Datacontrol
 class DataacGui(QMainWindow):

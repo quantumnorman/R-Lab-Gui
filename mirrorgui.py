@@ -58,8 +58,8 @@ class MirrorGui(QMainWindow):
 class MirrorControlbtns(QWidget):
     def __init__(self):
         super(MirrorControlbtns, self).__init__()
-        ytaskwrite.write([0])
-        xtaskwrite.write([0])
+        # ytaskwrite.write([0])
+        # xtaskwrite.write([0])
 
         self.xpos = 0
         self.ypos = 0

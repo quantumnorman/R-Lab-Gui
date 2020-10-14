@@ -9,11 +9,11 @@ from ingaasgui import Cameracontrols
 from dataacgui import Datacontrol
 from mirrorgui import MirrorControlbtns
 
-from pyAndorShamrock import Shamrock
-sham = Shamrock.Shamrock()
-from atmcd import *
-inifile = 'C:\\Users\\R-Lab\\Desktop\\detector.ini'
-cam = atmcd()
+# from pyAndorShamrock import Shamrock
+# sham = Shamrock.Shamrock()
+# from atmcd import *
+# inifile = 'C:\\Users\\R-Lab\\Desktop\\detector.ini'
+# cam = atmcd()
 class SystemGUI(QMainWindow):
     # This and initspecui sets some default values to load in upon startup
     def __init__(self):
@@ -26,11 +26,11 @@ class SystemGUI(QMainWindow):
         self.height = 1000
         self.statusBar = QStatusBar()
         self.setStatusBar(self.statusBar)
-        sham.ShamrockInitialize(inifile)
+        # sham.ShamrockInitialize(inifile)
         self.initspecUI()
         ret = app.exec()
-        cam.ShutDown
-        sham.ShamrockClose()
+        # cam.ShutDown
+        # sham.ShamrockClose()
         sys.exit(ret)
 
 

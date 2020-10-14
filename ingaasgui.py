@@ -6,7 +6,7 @@ from atmcd import *
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot, QThread, pyqtSignal, QTimer
 
-cam = atmcd()
+# cam = atmcd()
 
 class InGaAsGui(QMainWindow):
     def __init__(self):
@@ -145,17 +145,17 @@ class Tempthread(QThread):
 
     def run(self):
         print('temp')
-        ret, temp = cam.GetTemperature()
-        if ret == 20075:
-            templblsettext = 'Camera Not Initialized'
+        # ret, temp = cam.GetTemperature()
+        # if ret == 20075:
+        #     templblsettext = 'Camera Not Initialized'
 
-        while self.condition ==1:
-            ret, temp = cam.GetTemperature()
-            temp = str(temp)
-            self.signal.emit(temp)
-            print('temperature = ', temp, 'return', ret)
-            time.sleep(5)
-        print('temp', ret, temp)
+        # while self.condition ==1:
+        #     ret, temp = cam.GetTemperature()
+        #     temp = str(temp)
+            # self.signal.emit(temp)
+            # print('temperature = ', temp, 'return', ret)
+            # time.sleep(5)
+        # print('temp', ret, temp)
 
     def halt(self):
         self.condition = 0
