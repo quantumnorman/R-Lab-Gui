@@ -8,18 +8,18 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from atmcd import *
-# import nidaqmx
+import nidaqmx
 import dataacgui
 from pyAndorShamrock import Shamrock
-# sham = Shamrock.Shamrock()
-# inifile = 'C:\\Users\\R-Lab\\Desktop\\detector.ini'
-# sham.ShamrockInitialize(inifile)
+sham = Shamrock.Shamrock()
+inifile = 'C:\\Users\\R-Lab\\Desktop\\detector.ini'
+sham.ShamrockInitialize(inifile)
 
-# ytaskwrite = nidaqmx.Task()
-# ytaskwrite.ao_channels.add_ao_voltage_chan('Dev1/ao0')
-#
-# xtaskwrite = nidaqmx.Task()
-# xtaskwrite.ao_channels.add_ao_voltage_chan('Dev1/ao1')
+ytaskwrite = nidaqmx.Task()
+ytaskwrite.ao_channels.add_ao_voltage_chan('Dev1/ao0')
+
+xtaskwrite = nidaqmx.Task()
+xtaskwrite.ao_channels.add_ao_voltage_chan('Dev1/ao1')
 
 
 umwidth = 10.
@@ -376,7 +376,7 @@ class MirrorControlbtns(QWidget):
         print('Move to x')
 
     def on_click_movey(self):
-        ymove = self.ymovetxt.text()
+        ymove = float(self.ymovetxt.text())
         yvolt = ymove * voltcalib
         ytaskwrite.write(yvolt)
         print('Move to y')

@@ -6,7 +6,7 @@ from atmcd import *
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot, QThread, pyqtSignal, QTimer
 
-# cam = atmcd()
+cam = atmcd()
 
 class InGaAsGui(QMainWindow):
     def __init__(self):

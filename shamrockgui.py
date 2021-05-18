@@ -6,7 +6,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
 
 from pyAndorShamrock import Shamrock
-# sham = Shamrock.Shamrock()
+sham = Shamrock.Shamrock()
 inifile = 'C:\\Users\\R-Lab\\Desktop\\detector.ini'
 
 # This class sets up the window and framework for the spectrometer controls
@@ -21,7 +21,7 @@ class SpectrometerGui(QMainWindow):
         self.top = 50
         self.width = 400
         self.height = 250
-        # sham.ShamrockInitialize(inifile)
+        sham.ShamrockInitialize(inifile)
         self.initspecUI()
         # sys.exit(app.exec_())
 
@@ -39,37 +39,37 @@ class SpecControlbtns(QWidget):
         super(SpecControlbtns, self).__init__()
 
         # Initializes the status updating labels #
-        # ret, gratingset = sham.ShamrockGetGrating(0)
+        ret, gratingset = sham.ShamrockGetGrating(0)
         self.gratinglbl = QLabel()
-        # if gratingset == 1:
-        #     self.gratinglbl.setText('1250')
-        # if gratingset ==2:
-        #     self.gratinglbl.setText('750')
-        # if gratingset ==3:
-        #     self.gratinglbl.setText('1300')
+        if gratingset == 1:
+            self.gratinglbl.setText('1250')
+        if gratingset ==2:
+            self.gratinglbl.setText('750')
+        if gratingset ==3:
+            self.gratinglbl.setText('1300')
 
         self.outfliplbl = QLabel()
-        # ret, outflipset = sham.ShamrockGetFlipperMirror(0,2)
-        # print(outflipset)
-        # print(ret)
-        # if outflipset ==0:
-        #     self.outfliplbl.setText('Output Flipper Straight')
-        # if outflipset ==1:
-        #     self.outfliplbl.setText('Output Flipper Side')
+        ret, outflipset = sham.ShamrockGetFlipperMirror(0,2)
+        print(outflipset)
+        print(ret)
+        if outflipset ==0:
+            self.outfliplbl.setText('Output Flipper Straight')
+        if outflipset ==1:
+            self.outfliplbl.setText('Output Flipper Side')
 
         self.infliplbl = QLabel()
-        # ret, inflipset = sham.ShamrockGetFlipperMirror(0,1)
-        # print(inflipset)
-        # print(ret)
-        # if inflipset==0:
-        #     self.infliplbl.setText('Input Flipper Straight')
-        # if inflipset==1:
-        #     self.infliplbl.setText("Input Flipper Side")
+        ret, inflipset = sham.ShamrockGetFlipperMirror(0,1)
+        print(inflipset)
+        print(ret)
+        if inflipset==0:
+            self.infliplbl.setText('Input Flipper Straight')
+        if inflipset==1:
+            self.infliplbl.setText("Input Flipper Side")
 
         self.wavelbl = QLabel()
-        # ret, waveset = sham.ShamrockGetWavelength(0)
-        # waveset = str(waveset)
-        # self.wavelbl.setText(waveset)
+        ret, waveset = sham.ShamrockGetWavelength(0)
+        waveset = str(waveset)
+        self.wavelbl.setText(waveset)
 
         self.specstatlbl = QLabel('Spectrometer Initialized')
         self.btnslayout()

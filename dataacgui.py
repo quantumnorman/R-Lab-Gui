@@ -13,9 +13,9 @@ import datetime
 from scipy import optimize
 from pyAndorShamrock import Shamrock
 
-# sham = Shamrock.Shamrock()
-# now = datetime.datetime.now()
-# cam = atmcd()
+sham = Shamrock.Shamrock()
+now = datetime.datetime.now()
+cam = atmcd()
 
 # DataacGui sets up the window and calls the widget Datacontrol
 class DataacGui(QMainWindow):
@@ -311,29 +311,31 @@ class Datacontrol(QWidget):
         return amp * sigma ** 2 / (sigma ** 2 + (x - center) ** 2)
 
     def getwavel(self):
-        ret, self.waveset = sham.ShamrockGetWavelength(0)
-        ret, self.gratingset = sham.ShamrockGetGrating(0)
-
-        if self.gratingset == 1:
-            wavemin = self.waveset - 55.185
-            wavemax = self.waveset + 55.185
-            wavelength = np.linspace(wavemin, wavemax, 512)
-            # print(wavelength)
-            return wavelength
-
-        if self.gratingset == 2:
-            wavemin = self.waveset - 12.225
-            wavemax = self.waveset + 12.225
-            wavelength = np.linspace(wavemin, wavemax, 512)
-            # print(wavelength)
-            return wavelength
-
-        if self.gratingset == 3:
-            wavemin = self.waveset - 6.93
-            wavemax = self.waveset + 6.93
-            wavelength = np.linspace(wavemin, wavemax, 512)
-            # print(wavelength)
-            return wavelength
+        wavelength = np.linspace(0, 511, 512)
+        return wavelength
+        # ret, self.waveset = sham.ShamrockGetWavelength(0)
+        # ret, self.gratingset = sham.ShamrockGetGrating(0)
+        #
+        # if self.gratingset == 1:
+        #     wavemin = self.waveset
+        #     wavemax = self.waveset
+        #     wavelength = np.linspace(wavemin, wavemax, 512)
+        #     # print(wavelength)
+        #     return wavelength
+        #
+        # if self.gratingset == 2:
+        #     wavemin = self.waveset
+        #     wavemax = self.waveset
+        #     wavelength = np.linspace(wavemin, wavemax, 512)
+        #     # print(wavelength)
+        #     return wavelength
+        #
+        # if self.gratingset == 3:
+        #     wavemin = self.waveset
+        #     wavemax = self.waveset
+        #     wavelength = np.linspace(wavemin, wavemax, 512)
+        #     # print(wavelength)
+        #     return wavelength
 
 
 # kinetic acquisition
@@ -397,8 +399,8 @@ class Datacontrol(QWidget):
         self.thread.start()
         self.thread.signal.connect(self.on_thread_done)
         self.exposuretime = time
-        self.wavelength = self.getwavel()
-
+        # self.wavelength = self.getwavel()
+        self.wavelength = np.linspace(0, 511, 512)
     def on_click_inputtime(self):
         textboxvalue = float(self.inputbox.text())
         self.thread = SingleAcquisitionThread(textboxvalue)
@@ -706,7 +708,6 @@ class ContinuousAcquisitionThread(QThread):
 
             (ret) = cam.SetImage(1, 1, 1, xpixels, 1, ypixels)
             (ret) = cam.SetExposureTime(self.time)
-            (ret) = cam.SetKineticCycleTime(0)
             while self.condition == 1:
                 (ret) = cam.PrepareAcquisition()
                 (ret) = cam.StartAcquisition()
