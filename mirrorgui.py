@@ -15,11 +15,11 @@ sham = Shamrock.Shamrock()
 inifile = 'C:\\Users\\R-Lab\\Desktop\\detector.ini'
 sham.ShamrockInitialize(inifile)
 
-ytaskwrite = nidaqmx.Task()
-ytaskwrite.ao_channels.add_ao_voltage_chan('Dev1/ao0')
-
-xtaskwrite = nidaqmx.Task()
-xtaskwrite.ao_channels.add_ao_voltage_chan('Dev1/ao1')
+# ytaskwrite = nidaqmx.Task()
+# ytaskwrite.ao_channels.add_ao_voltage_chan('Dev1/ao0')
+#
+# xtaskwrite = nidaqmx.Task()
+# xtaskwrite.ao_channels.add_ao_voltage_chan('Dev1/ao1')
 
 
 umwidth = 10.
